@@ -11,14 +11,11 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
 import {
   RiCameraLine,
   RiFileHistoryLine,
-  RiHomeGearLine,
   RiHomeLine,
   RiUserLine,
 } from "@remixicon/react";
@@ -31,6 +28,11 @@ const data = {
       icon: RiHomeLine,
     },
     {
+      title: "Matters",
+      url: "/matters",
+      icon: RiHomeLine,
+    },
+    {
       title: "Profile",
       url: "/profile",
       icon: RiUserLine,
@@ -40,36 +42,6 @@ const data = {
       url: "/audit-logs",
       icon: RiFileHistoryLine,
     },
-    // {
-    //   title: "Users",
-    //   url: "/dashboard/users",
-    //   icon: RiFileHistoryLine,
-    // },
-    // {
-    //   title: "Settings",
-    //   url: "/dashboard/settings",
-    //   icon: RiHomeGearLine,
-    // },
-    // {
-    //   title: "Login",
-    //   url: "/login",
-    //   icon: RiFileHistoryLine,
-    // },
-    // {
-    //   title: "Register",
-    //   url: "/register",
-    //   icon: RiHomeGearLine,
-    // },
-    // {
-    //   title: "404 Page",
-    //   url: "/404-page",
-    //   icon: RiFileHistoryLine,
-    // },
-    // {
-    //   title: "500 Page",
-    //   url: "/500-page",
-    //   icon: RiHomeGearLine,
-    // },
   ],
   navClouds: [
     {

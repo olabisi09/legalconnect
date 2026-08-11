@@ -16,12 +16,8 @@ interface User {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  accessToken: string | null;
 
-  setAuthState: (state: {
-    user: AuthState["user"];
-    accessToken?: string | null;
-  }) => void;
+  setAuthState: (state: { user: AuthState["user"] }) => void;
   setUser: (user: AuthState["user"]) => void;
   clearAuthState: () => void;
 }
@@ -31,16 +27,13 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      accessToken: null,
 
-      setAuthState: ({ user, accessToken = null }) =>
-        set(() => ({ user, isAuthenticated: true, accessToken })),
+      setAuthState: ({ user }) => set(() => ({ user, isAuthenticated: true })),
       setUser: (user) => set(() => ({ user })),
       clearAuthState: () => {
         set(() => ({
           isAuthenticated: false,
           user: null,
-          accessToken: null,
         }));
 
         if (typeof window !== "undefined") {

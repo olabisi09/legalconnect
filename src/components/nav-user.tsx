@@ -8,7 +8,7 @@ import {
   RiUserLine,
 } from "@remixicon/react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -28,9 +28,11 @@ import {
 import { useTheme } from "next-themes";
 import { Switch } from "./ui/switch";
 import { useAuthStore } from "@/store/auth-store";
+import { useLogout } from "@/hooks/features/use-auth";
 
 export function NavUser() {
   const user = useAuthStore((s) => s.user);
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { isMobile } = useSidebar();
   const { resolvedTheme, setTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -115,9 +117,14 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isLoggingOut}
+              onClick={() => {
+                logout(undefined);
+              }}
+            >
               <RiLogoutBoxLine />
-              Log out
+              {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

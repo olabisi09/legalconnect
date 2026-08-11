@@ -1,7 +1,7 @@
 import { ApiResponse, PagedResponse } from "@/types/shared";
 import type { AuditLogParams } from "@/types/admin";
 import { apiClient, unwrap } from "./api-client";
-import { AuthResponse, RegisterPayload } from "@/types/auth";
+import { AuthResponse, RegisterPayload, RegisterResponse } from "@/types/auth";
 import {
   LawyerProfileResponse,
   UpdateLawyerProfileRequest,
@@ -21,13 +21,18 @@ export const authAPI = {
       .then(unwrap),
 
   register: async (payload: RegisterPayload) =>
-    await apiClient.post("/auth/register", payload).then(unwrap),
+    await apiClient
+      .post<ApiResponse<RegisterResponse>>("/onboarding/setup", payload)
+      .then(unwrap),
 
   forgotPassword: async (payload: { email: string }) =>
     await apiClient.post("/auth/password/reset-request", payload).then(unwrap),
 
   resetPassword: async (payload: { password: string; token: string }) =>
     await apiClient.post("/auth/password/reset", payload).then(unwrap),
+
+  logout: async (payload?: { refreshToken?: string }) =>
+    await apiClient.post("/auth/logout", payload).then(unwrap),
 };
 
 export const profileAPI = {
@@ -68,5 +73,9 @@ export const auditAPI = {
   getAuditLogs: async (params?: AuditLogParams) =>
     await apiClient
       .get<ApiResponse<PagedResponse<AuditLog>>>("/audit-logs", { params })
+      .then(unwrap),
+  exportAuditLogs: async (params?: AuditLogParams) =>
+    await apiClient
+      .get<ApiResponse<string>>("/audit-logs/export", { params })
       .then(unwrap),
 };

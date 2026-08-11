@@ -5,7 +5,7 @@ const protectedRoutes = ["/dashboard"];
 const publicRoutes = [
   "/",
   "/login",
-  "/register",
+  "/signup",
   "/forgot-password",
   "/reset-password",
 ];
@@ -38,7 +38,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/login",
-    "/register",
+    "/signup",
     "/forgot-password",
     "/reset-password",
   ],

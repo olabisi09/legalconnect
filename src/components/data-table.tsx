@@ -13,17 +13,20 @@ import {
 
 import { features, type DataTableFeatures } from "./data-table-features";
 import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[];
   data: TData[];
   emptyText?: string;
+  loading?: boolean;
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
   emptyText = "No results.",
+  loading = false,
 }: DataTableProps<TData>) {
   const table = useTable({
     features,
@@ -51,7 +54,17 @@ export function DataTable<TData extends RowData>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index}>
+                  {Array.from({ length: columns.length }).map((_, colIndex) => (
+                    <TableCell key={colIndex}>
+                      <Skeleton className="h-4 w-full rounded-none" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -96,5 +109,17 @@ export function DataTable<TData extends RowData>({
         </Button>
       </div>
     </div>
+  );
+}
+
+function SkeletonRow({ cols }: { cols: number }) {
+  return (
+    <tr>
+      {Array.from({ length: cols }).map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <div className="h-4 w-full animate-pulse rounded bg-bg-weak-50" />
+        </td>
+      ))}
+    </tr>
   );
 }

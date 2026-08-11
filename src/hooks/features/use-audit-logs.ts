@@ -13,3 +13,10 @@ export function useAuditLogs(params?: AuditLogParams) {
     queryFn: () => auditAPI.getAuditLogs(params),
   });
 }
+
+export function useExportAuditLogs(params?: AuditLogParams) {
+  return useQuery({
+    queryKey: ["export-audit-logs", params],
+    queryFn: () => auditAPI.exportAuditLogs(params),
+  });
+}

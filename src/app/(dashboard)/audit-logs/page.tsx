@@ -1,5 +1,6 @@
 "use client";
 
+import { AppButton } from "@/components/app-button";
 import { DashboardCard } from "@/components/dashboard-card";
 import { DataTable } from "@/components/data-table";
 import {
@@ -9,6 +10,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useAuditLogs } from "@/hooks/features/use-audit-logs";
+import { RiExportLine } from "@remixicon/react";
 
 export default function AuditLogsPage() {
   const { data, isLoading } = useAuditLogs();
@@ -34,18 +36,38 @@ export default function AuditLogsPage() {
     },
   ];
   return (
-    <DashboardCard>
-      <CardHeader className="border-b">
-        <CardTitle className="text-sm">Audit Logs</CardTitle>
-        <CardDescription>
-          View a log of all actions performed within the application, including
-          user activities and system events.
-        </CardDescription>
-      </CardHeader>
+    // <DashboardCard>
+    //   <CardHeader className="border-b">
+    //     <CardTitle className="text-sm">Audit Logs</CardTitle>
+    //     <CardDescription>
+    //       View a log of all actions performed within the application, including
+    //       user activities and system events.
+    //     </CardDescription>
+    //   </CardHeader>
 
-      <CardContent>
-        <DataTable data={logs} columns={columns} />
-      </CardContent>
-    </DashboardCard>
+    //   <CardContent>
+    //     <DataTable data={logs} columns={columns} loading={isLoading} />
+    //   </CardContent>
+    // </DashboardCard>
+    <div>
+      <p className="font-plexmono text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+        09 — Compliance
+      </p>
+      <h1 className="mt-2 font-newsreader text-[28px] font-medium text-foreground">
+        Audit Logs
+      </h1>
+      <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
+        View a log of all actions performed within the application, including
+        user activities and system events.
+      </p>
+
+      <div className="mt-8">
+        <AppButton variant="outline" className="ml-auto">
+          <RiExportLine />
+          Export
+        </AppButton>
+        <DataTable data={logs} columns={columns} loading={isLoading} />
+      </div>
+    </div>
   );
 }

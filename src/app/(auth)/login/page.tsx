@@ -1,4 +1,5 @@
 "use client";
+import { AuthForm } from "@/components/auth-form";
 
 import Link from "next/link";
 import { useLogin } from "@/hooks/features/use-auth";
@@ -58,7 +59,7 @@ export default function LoginPage() {
           throw new Error("Unable to create authenticated session");
         }
 
-        setAuthState({ user: res.user, accessToken: res.accessToken });
+        setAuthState({ user: res.user });
       }
 
       const redirectTo = localStorage.getItem(APP_REDIRECT_TO_KEY);
@@ -68,73 +69,62 @@ export default function LoginPage() {
       clearAuthState();
     }
   };
+
   return (
-    <div className="flex pb-8 lg:h-screen lg:pb-0">
-      <div className="hidden w-1/2 h-full bg-gray-100 lg:block bg-[url('/images/cover.png')] bg-cover bg-center"></div>
-
-      <div className="h-screen flex w-full items-center justify-center lg:w-1/2">
-        <div className="w-full max-w-md space-y-8 px-4">
-          <div className="text-center">
-            <h2 className="mt-6 text-3xl font-bold text-gray-900">
-              Welcome back
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Please sign in to your account
-            </p>
-          </div>
-
-          <FormProvider {...form}>
-            <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
-              <div className="space-y-4">
-                <FormInput
-                  id="email"
-                  name="email"
-                  type="email"
-                  className="w-full"
-                  placeholder="Email address"
-                  label="Email address"
-                />
-                <FormInput
-                  id="password"
-                  name="password"
-                  type="password"
-                  className="w-full"
-                  placeholder="Password"
-                  label="Password"
-                />
-                <div className="text-end">
-                  <Link
-                    href="/forgot-password"
-                    className="ml-auto inline-block text-sm underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-              </div>
-
-              <div>
-                <AppButton
-                  type="submit"
-                  className="w-full"
-                  loading={login.isPending}
-                  loadingText="Signing in..."
-                >
-                  Sign in
-                </AppButton>
-              </div>
-            </form>
-          </FormProvider>
-
-          <div className="mt-6">
-            <div className="mt-6 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="underline">
-                Sign up
+    <AuthForm
+      title="Welcome back"
+      subtitle="Sign in to your account"
+      footer={
+        <>
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="font-medium text-lc-ink underline underline-offset-2"
+          >
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-4">
+            <FormInput
+              id="email"
+              name="email"
+              type="email"
+              className="w-full"
+              placeholder="Email address"
+              label="Email address"
+            />
+            <FormInput
+              id="password"
+              name="password"
+              type="password"
+              className="w-full"
+              placeholder="Password"
+              label="Password"
+            />
+            <div className="text-end">
+              <Link
+                href="/forgot-password"
+                className="ml-auto inline-block text-sm text-lc-slate underline underline-offset-2 hover:text-lc-ink"
+              >
+                Forgot your password?
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+
+          <AppButton
+            type="submit"
+            className="w-full bg-lc-stamp text-lc-paper hover:bg-lc-stamp-dark"
+            loading={login.isPending}
+            loadingText="Signing in..."
+          >
+            Sign in
+          </AppButton>
+        </form>
+      </FormProvider>
+    </AuthForm>
   );
 }

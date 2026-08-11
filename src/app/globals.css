@@ -46,6 +46,21 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-lc-ink: var(--lc-ink);
+  --color-lc-paper: var(--lc-paper);
+  --color-lc-paper-warm: var(--lc-paper-warm);
+  --color-lc-ledger: var(--lc-ledger);
+  --color-lc-ledger-dark: var(--lc-ledger-dark);
+  --color-lc-ledger-pale: var(--lc-ledger-pale);
+  --color-lc-stamp: var(--lc-stamp);
+  --color-lc-stamp-dark: var(--lc-stamp-dark);
+  --color-lc-slate: var(--lc-slate);
+ 
+  --font-newsreader: var(--font-newsreader);
+  --font-plexmono: var(--font-plex-mono);
+
+  --animate-stampdown: stampdown 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) 0.35s backwards;
 }
 
 :root {
@@ -81,6 +96,16 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --lc-ink: oklch(0.222 0.008 95.4);          /* #1C1B17 - primary text, dark bg */
+  --lc-paper: oklch(0.964 0.012 91.5);        /* #F6F3EA - main background */
+  --lc-paper-warm: oklch(0.936 0.020 94.5);   /* #EEEADB - secondary section bg */
+  --lc-ledger: oklch(0.333 0.044 154.6);      /* #233D2C - deep ledger green */
+  --lc-ledger-dark: oklch(0.263 0.037 155.7); /* #152A1D - dark section bg */
+  --lc-ledger-pale: oklch(0.914 0.023 131.2); /* #DDE6D6 - pale ledger green */
+  --lc-stamp: oklch(0.522 0.157 29.6);        /* #B23B2E - stamp red accent */
+  --lc-stamp-dark: oklch(0.437 0.132 29.4);   /* #8C2C22 - stamp red hover */
+  --lc-slate: oklch(0.522 0.017 102.7);       /* #6B6A5F - secondary text */
 }
 
 .dark {
@@ -115,6 +140,16 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --lc-ink: oklch(0.933 0.019 93.7);          /* #EDE9DB - text flips light */
+  --lc-paper: oklch(0.196 0.012 91.8);        /* #17150F - main bg flips dark */
+  --lc-paper-warm: oklch(0.231 0.017 91.8);   /* #201D14 - secondary panel bg */
+  --lc-ledger: oklch(0.662 0.101 152.9);      /* #5FA575 - brightened for contrast on dark */
+  --lc-ledger-dark: oklch(0.222 0.027 157.0); /* #101F16 - stays near-black green */
+  --lc-ledger-pale: oklch(0.282 0.032 153.3); /* #1D2E22 - "pale" role becomes a muted dark panel */
+  --lc-stamp: oklch(0.613 0.168 31.5);        /* #D6543F - brightened for pop on dark */
+  --lc-stamp-dark: oklch(0.497 0.153 30.2);   /* #A83527 - hover state */
+  --lc-slate: oklch(0.725 0.018 103.3);       /* #A8A79A - lightened for readability */
 }
 
 @layer base {
@@ -128,3 +163,9 @@
     @apply font-sans;
   }
 }
+
+@keyframes stampdown {
+    0% { transform: rotate(-11deg) scale(2.4); opacity: 0; }
+    60% { opacity: 1; }
+    100% { transform: rotate(-11deg) scale(0.94); opacity: 1; }
+  }

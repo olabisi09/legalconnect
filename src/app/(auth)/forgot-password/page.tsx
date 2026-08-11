@@ -94,7 +94,7 @@ export default function ForgotPassword() {
           <div>
             <div className="text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="underline">
+              <Link href="/signup" className="underline">
                 Sign up
               </Link>
             </div>
