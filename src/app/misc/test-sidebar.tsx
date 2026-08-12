@@ -37,8 +37,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/auth-store";
-import { useLogout } from "@/hooks/features/use-auth";
-import { getInitials } from "@/lib/utils";
 
 const practiceNav = [
   { title: "Dashboard", href: "/dashboard", icon: RiHomeLine },
@@ -110,8 +108,9 @@ function NavGroup({
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { user } = useAuthStore();
-  const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  // Assumes your auth store exposes `user` alongside setAuthState/clearAuthState —
+  // swap the field names below if your store shapes this differently.
+  const { user, clearAuthState } = useAuthStore();
 
   return (
     <Sidebar collapsible="icon">
@@ -124,9 +123,9 @@ export function AppSidebar() {
             <span className="truncate font-newsreader text-sm font-medium text-sidebar-foreground">
               Halvorsen &amp; Reyes LLP
             </span>
-            {/* <span className="font-plexmono text-[10px] text-sidebar-foreground/50">
+            <span className="font-plexmono text-[10px] text-sidebar-foreground/50">
               MATTER OS
-            </span> */}
+            </span>
           </div>
         </div>
       </SidebarHeader>
@@ -146,11 +145,11 @@ export function AppSidebar() {
                   <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent">
                     <Avatar className="h-6 w-6 rounded-sm">
                       <AvatarFallback className="rounded-sm bg-sidebar-accent text-[10px] text-sidebar-foreground">
-                        {getInitials(`${user?.firstName} ${user?.lastName}`)}
+                        {(user?.firstName ?? "U").slice(0, 1).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <span className="truncate">
-                      {user?.firstName} {user?.lastName}
+                      {user?.firstName ?? "Account"}
                     </span>
                     <RiExpandUpDownLine className="ml-auto h-4 w-4 opacity-50" />
                   </SidebarMenuButton>
@@ -163,10 +162,7 @@ export function AppSidebar() {
                 />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  disabled={isLoggingOut}
-                  onClick={() => {
-                    logout(undefined);
-                  }}
+                  onClick={() => clearAuthState()}
                   variant="destructive"
                 >
                   <RiLogoutBoxRLine />

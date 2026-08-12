@@ -10,12 +10,8 @@ export function useLogin() {
 }
 
 export function useRegister() {
-  const router = useRouter();
   return useMutation({
     mutationFn: authAPI.register,
-    onSuccess: () => {
-      router.push("/login");
-    },
   });
 }
 
@@ -28,6 +24,18 @@ export function useForgotPassword() {
 export function useResetPassword() {
   return useMutation({
     mutationFn: authAPI.resetPassword,
+  });
+}
+
+export function useEnableMFA() {
+  return useMutation({
+    mutationFn: authAPI.enableMFA,
+  });
+}
+
+export function useVerifyMFA() {
+  return useMutation({
+    mutationFn: authAPI.verifyMFA,
   });
 }
 

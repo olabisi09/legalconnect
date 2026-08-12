@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { AppLogo } from "@/components/app-logo";
+import { AppLogo, AppLogoDark, AppLogoLight } from "@/components/app-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 /** Small static docket stamp, reused (unanimated) across auth screens. */
@@ -107,7 +107,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="flex flex-col items-center justify-center bg-lc-paper px-6 py-14">
         <div className="w-full max-w-md">
           <div className="mb-8 flex justify-center lg:hidden">
-            <AppLogo />
+            <AppLogoLight />
           </div>
 
           {children}

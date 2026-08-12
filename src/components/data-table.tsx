@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/table";
 
 import { features, type DataTableFeatures } from "./data-table-features";
-import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
+import { AppPagination } from "./app-pagination";
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[];
@@ -33,6 +33,8 @@ export function DataTable<TData extends RowData>({
     data,
     columns,
   });
+
+  const { pageIndex, pageSize } = table.state.pagination;
 
   return (
     <div>
@@ -90,36 +92,17 @@ export function DataTable<TData extends RowData>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="py-4">
+        <AppPagination
+          pageIndex={pageIndex}
+          pageCount={table.getPageCount()}
+          canPreviousPage={table.getCanPreviousPage()}
+          canNextPage={table.getCanNextPage()}
+          pageSize={pageSize}
+          onPageChange={(index) => table.setPageIndex(index)}
+          onPageSizeChange={(size) => table.setPageSize(size)}
+        />
       </div>
     </div>
-  );
-}
-
-function SkeletonRow({ cols }: { cols: number }) {
-  return (
-    <tr>
-      {Array.from({ length: cols }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <div className="h-4 w-full animate-pulse rounded bg-bg-weak-50" />
-        </td>
-      ))}
-    </tr>
   );
 }

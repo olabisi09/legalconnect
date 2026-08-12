@@ -10,7 +10,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={false}
+      >
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster richColors position="top-right" />
       </ThemeProvider>

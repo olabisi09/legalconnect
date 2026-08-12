@@ -9,6 +9,7 @@ import {
   UserProfileResponse,
 } from "../types/profile";
 import { AuditLog } from "@/types/admin";
+import { Matter, MatterParams, MatterPayload } from "@/types/matter";
 
 export const authAPI = {
   login: async (payload: {
@@ -26,13 +27,27 @@ export const authAPI = {
       .then(unwrap),
 
   forgotPassword: async (payload: { email: string }) =>
-    await apiClient.post("/auth/password/reset-request", payload).then(unwrap),
+    await apiClient
+      .post<
+        ApiResponse<{ message: string; expiresIn: number }>
+      >("/auth/password/reset-request", payload)
+      .then(unwrap),
 
   resetPassword: async (payload: { password: string; token: string }) =>
     await apiClient.post("/auth/password/reset", payload).then(unwrap),
 
   logout: async (payload?: { refreshToken?: string }) =>
     await apiClient.post("/auth/logout", payload).then(unwrap),
+
+  enableMFA: async () =>
+    await apiClient
+      .post<
+        ApiResponse<{ secret: string; qrCodeUrl: string; verified: boolean }>
+      >("/auth/mfa/enroll", { type: "totp" })
+      .then(unwrap),
+
+  verifyMFA: async (payload: { code: string }) =>
+    await apiClient.post("/auth/mfa/verify", payload).then(unwrap),
 };
 
 export const profileAPI = {
@@ -78,4 +93,14 @@ export const auditAPI = {
     await apiClient
       .get<ApiResponse<string>>("/audit-logs/export", { params })
       .then(unwrap),
+};
+
+export const mattersAPI = {
+  getMatters: async (params?: MatterParams) =>
+    await apiClient
+      .get<ApiResponse<PagedResponse<Matter>>>("/matters", { params })
+      .then(unwrap),
+
+  createMatter: async (payload: MatterPayload) =>
+    await apiClient.post<ApiResponse<Matter>>("/matters", payload).then(unwrap),
 };

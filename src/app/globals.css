@@ -106,6 +106,8 @@
   --lc-stamp: oklch(0.522 0.157 29.6);        /* #B23B2E - stamp red accent */
   --lc-stamp-dark: oklch(0.437 0.132 29.4);   /* #8C2C22 - stamp red hover */
   --lc-slate: oklch(0.522 0.017 102.7);       /* #6B6A5F - secondary text */
+
+  --radius: 0.2rem;
 }
 
 .dark {

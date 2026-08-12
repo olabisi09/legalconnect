@@ -1,6 +1,6 @@
-import { NetRevenueChart } from "../_components/net-revenue-chart";
-import { DashboardStats } from "../_components/stats";
-import { ChannelSalesChart } from "../_components/channel-sales-chart";
+import { NetRevenueChart } from "./_components/net-revenue-chart";
+import { DashboardStats } from "./_components/stats";
+import { ChannelSalesChart } from "./_components/channel-sales-chart";
 
 export default function Dashboard() {
   return (

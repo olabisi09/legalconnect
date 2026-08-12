@@ -11,15 +11,13 @@ import { useAuthStore } from "@/store/auth-store";
 import { APP_REDIRECT_TO_KEY } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { AppButton } from "@/components/app-button";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
   password: z.string().min(1, "Password is required"),
-  mfaCode: z
-    .string()
-    .length(6, "MFA code must be 6 digits")
-    .optional()
-    .or(z.literal("")),
+  mfaCode: z.string().optional(), // Optional field for MFA code
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -28,6 +26,8 @@ export default function LoginPage() {
   const router = useRouter();
   const login = useLogin();
   const { setAuthState, clearAuthState } = useAuthStore();
+  const [isMfaRequired, setIsMfaRequired] = useState(false);
+  const [code, setCode] = useState("");
 
   const form = useForm({
     defaultValues: {
@@ -39,36 +39,80 @@ export default function LoginPage() {
   const { handleSubmit } = form;
 
   const onSubmit = async (values: LoginValues) => {
-    try {
-      const res = await login.mutateAsync(values);
+    await login.mutateAsync(values, {
+      onSuccess: async (res) => {
+        if (res.accessToken) {
+          const sessionResponse = await fetch("/api/auth/session", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              accessToken: res.accessToken,
+              refreshToken: res.refreshToken,
+            }),
+          });
 
-      if (!res.user?.mfaRequired) {
-        const sessionResponse = await fetch("/api/auth/session", {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            accessToken: res.accessToken,
-            refreshToken: res.refreshToken,
-          }),
-        });
+          if (!sessionResponse.ok) {
+            throw new Error("Unable to create authenticated session");
+          }
 
-        if (!sessionResponse.ok) {
-          throw new Error("Unable to create authenticated session");
+          setAuthState({ user: res.user });
+          const redirectTo = localStorage.getItem(APP_REDIRECT_TO_KEY);
+          localStorage.removeItem(APP_REDIRECT_TO_KEY);
+          router.replace(redirectTo ?? "/dashboard");
+        } else if (res.user?.mfaRequired) {
+          setIsMfaRequired(true);
         }
-
-        setAuthState({ user: res.user });
-      }
-
-      const redirectTo = localStorage.getItem(APP_REDIRECT_TO_KEY);
-      localStorage.removeItem(APP_REDIRECT_TO_KEY);
-      router.replace(redirectTo ?? "/dashboard");
-    } catch {
-      clearAuthState();
-    }
+      },
+      onError: () => {
+        clearAuthState();
+      },
+    });
   };
+
+  const submitWithMfaCode = () => {
+    onSubmit({
+      email: form.getValues("email"),
+      password: form.getValues("password"),
+      mfaCode: code,
+    });
+  };
+
+  if (isMfaRequired) {
+    return (
+      <AuthForm
+        title="Two-factor authentication required"
+        subtitle="Please enter the 6-digit code from your authenticator app."
+      >
+        <div className="space-y-4">
+          <Input
+            id="code"
+            name="code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            placeholder="000000"
+            className="w-full text-center font-plexmono text-lg tracking-[0.5em]"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+          />
+
+          <AppButton
+            type="submit"
+            className="w-full bg-lc-stamp text-lc-paper hover:bg-lc-stamp-dark"
+            loading={login.isPending}
+            loadingText="Verifying..."
+            disabled={code.length !== 6}
+            onClick={submitWithMfaCode}
+          >
+            Verify code
+          </AppButton>
+        </div>
+      </AuthForm>
+    );
+  }
 
   return (
     <AuthForm
