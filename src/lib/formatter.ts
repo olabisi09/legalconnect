@@ -8,7 +8,10 @@ export function parseIsoCalendarDate(isoDate: string): Date {
 
 export type DashboardDateStyle = "month" | "day-month" | "full";
 
-export function formatDate(isoDate: string, style: DashboardDateStyle): string {
+export function formatDate(
+  isoDate: string,
+  style: DashboardDateStyle = "full",
+): string {
   const date = parseIsoCalendarDate(isoDate);
   if (style === "month") {
     return date.toLocaleDateString(DASHBOARD_LOCALE, { month: "short" });
@@ -23,6 +26,40 @@ export function formatDate(isoDate: string, style: DashboardDateStyle): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+  });
+}
+
+// formatDateString function to format a date string in "2026-08-12T12:43:29.594372" format to "Aug 12, 2026"
+export function formatDateString(dateString: string): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString(DASHBOARD_LOCALE, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+// formatTimeString function to format a date string in "2026-08-12T12:43:29.594372" format to "12:43 PM"
+export function formatTimeString(dateString: string): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleTimeString(DASHBOARD_LOCALE, {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  });
+}
+
+export function formatDateTimeString(dateString: string): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString(DASHBOARD_LOCALE, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
   });
 }
 

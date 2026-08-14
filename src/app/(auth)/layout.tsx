@@ -81,7 +81,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Left panel — decorative, hidden below lg */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-lc-ledger-dark px-12 py-14 lg:flex">
-        <AppLogo />
+        <AppLogoDark />
         <div>
           <p className="font-plexmono text-[11px] font-semibold uppercase tracking-[0.14em] text-lc-stamp">
             The Law Firm Operating System

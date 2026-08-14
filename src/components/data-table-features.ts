@@ -11,6 +11,8 @@ import {
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
+  type ColumnDef,
+  type RowData,
 } from "@tanstack/react-table";
 
 // New in v9: declare the features this table uses — anything you don't
@@ -31,3 +33,8 @@ export const features = tableFeatures({
 // Pass this as the first generic argument to `ColumnDef`, `Column`, `Table`,
 // and `Row` so each type knows which feature APIs are available.
 export type DataTableFeatures = typeof features;
+export type TableColumnDef<TData extends RowData, TValue = unknown> = ColumnDef<
+  DataTableFeatures,
+  TData,
+  TValue
+>;

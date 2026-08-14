@@ -37,3 +37,10 @@ export interface PagedResponse<T> {
     hasPrevious: boolean;
   };
 }
+
+export interface SharedParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  direction?: "asc" | "desc";
+}

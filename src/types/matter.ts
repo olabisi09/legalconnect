@@ -50,7 +50,7 @@ export type MatterParams = Partial<
   size?: number;
 };
 
-interface Timeline {
+export interface Timeline {
   id: string;
   eventType: string;
   title: string;
@@ -60,7 +60,7 @@ interface Timeline {
   timestamp: string;
 }
 
-interface Deadline {
+export interface Deadline {
   id: string;
   title: string;
   description: string;
@@ -69,7 +69,7 @@ interface Deadline {
   completedAt: string;
 }
 
-interface Team {
+export interface Team {
   id: string;
   userId: string;
   userName: string;
@@ -78,7 +78,7 @@ interface Team {
   ethicalWall: boolean;
 }
 
-interface Party {
+export interface Party {
   id: string;
   partyType: string;
   firstName: string;

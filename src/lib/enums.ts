@@ -41,3 +41,14 @@ export const ENTITY_TYPES = [
   "TRUST",
   "OTHER",
 ] as const;
+
+export const PRIORITY_LEVELS = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
+
+export const MATTER_STATUSES = [
+  "DRAFT",
+  "INTAKE",
+  "ACTIVE",
+  "PENDING",
+  "CLOSED",
+  "ARCHIVED",
+] as const;

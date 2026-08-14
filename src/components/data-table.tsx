@@ -11,15 +11,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { features, type DataTableFeatures } from "./data-table-features";
+import { features } from "./data-table-features";
 import { Skeleton } from "./ui/skeleton";
 import { AppPagination } from "./app-pagination";
 
 interface DataTableProps<TData extends RowData> {
-  columns: ColumnDef<DataTableFeatures, TData>[];
+  columns: ColumnDef<typeof features, TData>[];
   data: TData[];
   emptyText?: string;
   loading?: boolean;
+  onRowClick?: (row: TData) => void;
+  pagination?: {
+    /** 1-based page number */
+    pageNumber: number;
+    pageSize: number;
+    onPageChange: (pageNumber: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+    totalItems: number;
+  };
 }
 
 export function DataTable<TData extends RowData>({
@@ -27,6 +36,8 @@ export function DataTable<TData extends RowData>({
   data,
   emptyText = "No results.",
   loading = false,
+  onRowClick,
+  pagination,
 }: DataTableProps<TData>) {
   const table = useTable({
     features,
@@ -34,7 +45,9 @@ export function DataTable<TData extends RowData>({
     columns,
   });
 
-  const { pageIndex, pageSize } = table.state.pagination;
+  const totalPages = pagination
+    ? Math.ceil(pagination.totalItems / pagination.pageSize)
+    : 0;
 
   return (
     <div>
@@ -71,6 +84,9 @@ export function DataTable<TData extends RowData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={onRowClick ? "cursor-pointer" : ""}
+                  data-page-number={pagination?.pageNumber}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -92,17 +108,19 @@ export function DataTable<TData extends RowData>({
           </TableBody>
         </Table>
       </div>
-      <div className="py-4">
-        <AppPagination
-          pageIndex={pageIndex}
-          pageCount={table.getPageCount()}
-          canPreviousPage={table.getCanPreviousPage()}
-          canNextPage={table.getCanNextPage()}
-          pageSize={pageSize}
-          onPageChange={(index) => table.setPageIndex(index)}
-          onPageSizeChange={(size) => table.setPageSize(size)}
-        />
-      </div>
+      {pagination && (
+        <div className="py-4">
+          <AppPagination
+            pageIndex={pagination?.pageNumber - 1}
+            pageCount={totalPages}
+            canPreviousPage={table.getCanPreviousPage()}
+            canNextPage={table.getCanNextPage()}
+            pageSize={pagination?.pageSize ?? 0}
+            onPageChange={(index) => pagination?.onPageChange(index + 1)}
+            onPageSizeChange={(size) => pagination?.onPageSizeChange(size)}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -28,3 +28,8 @@ export function getInitials(str: string) {
   const initials = names.map((name) => name.charAt(0).toUpperCase());
   return initials.join("");
 }
+
+export function capitalize(str: string) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}

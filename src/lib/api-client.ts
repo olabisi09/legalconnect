@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { ApiResponse, ApiError, PagedResponse } from "@/types/shared";
+import { useAuthStore } from "@/store/auth-store";
 
 export const apiClient = axios.create({
   baseURL: "/api/proxy",
@@ -7,6 +8,16 @@ export const apiClient = axios.create({
   withCredentials: true,
   timeout: 30000,
 });
+
+let isHandlingUnauthorized = false;
+
+function isLoginRequest(url?: string): boolean {
+  if (!url) return false;
+
+  // Handle both relative urls ("/auth/login") and absolute urls.
+  const normalized = url.startsWith("http") ? new URL(url).pathname : url;
+  return normalized.endsWith("/auth/login") || normalized === "auth/login";
+}
 
 apiClient.interceptors.request.use((config) => {
   if (config.data instanceof FormData) {
@@ -33,6 +44,34 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error) => {
+    const status = error?.response?.status as number | undefined;
+    const requestUrl = error?.config?.url as string | undefined;
+
+    if (
+      status === 401 &&
+      !isLoginRequest(requestUrl) &&
+      !isHandlingUnauthorized
+    ) {
+      isHandlingUnauthorized = true;
+
+      const { clearAuthState } = useAuthStore.getState();
+      clearAuthState();
+
+      if (typeof window !== "undefined") {
+        const isAuthPage =
+          window.location.pathname === "/login" ||
+          window.location.pathname.startsWith("/signup") ||
+          window.location.pathname.startsWith("/forgot-password") ||
+          window.location.pathname.startsWith("/mfa");
+
+        if (!isAuthPage) {
+          window.location.replace("/login");
+        }
+      }
+
+      isHandlingUnauthorized = false;
+    }
+
     return Promise.reject(error);
   },
 );

@@ -6,7 +6,12 @@ import {
 } from "@/lib/cookie";
 import type { NextRequest } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+type RefreshTokenPayload = {
+  accessToken?: string;
+  access_token?: string;
+  refreshToken?: string;
+  refresh_token?: string;
+};
 
 const PUBLIC_PATH_PREFIXES = [
   "auth/login",
@@ -21,14 +26,23 @@ type RouteContext = {
   }>;
 };
 
-type RefreshPayload = {
-  accessToken?: string;
-  refreshToken?: string;
-  data?: {
-    accessToken?: string;
-    refreshToken?: string;
-  };
+type RefreshPayload = RefreshTokenPayload & {
+  data?: RefreshTokenPayload;
 };
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+function resolveRefreshTokens(payload: RefreshPayload): {
+  accessToken: string | null;
+  refreshToken: string | null;
+} {
+  const data = payload.data ?? payload;
+
+  return {
+    accessToken: data.accessToken ?? data.access_token ?? null,
+    refreshToken: data.refreshToken ?? data.refresh_token ?? null,
+  };
+}
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_PREFIXES.some((prefix) => pathname === prefix);
@@ -98,17 +112,14 @@ async function refreshAccessToken(
   }
 
   const refreshData = (await refreshResponse.json()) as RefreshPayload;
-  const payload = refreshData.data ?? refreshData;
+  const tokens = resolveRefreshTokens(refreshData);
 
-  if (!payload.accessToken) {
+  if (!tokens.accessToken) {
     return null;
   }
 
-  await setAuthCookie(
-    payload.accessToken,
-    payload.refreshToken ?? refreshToken,
-  );
-  return payload.accessToken;
+  await setAuthCookie(tokens.accessToken, tokens.refreshToken ?? refreshToken);
+  return tokens.accessToken;
 }
 
 async function forwardRequest(
@@ -116,17 +127,37 @@ async function forwardRequest(
   path: string[],
   accessToken?: string,
 ): Promise<Response> {
-  const backendUrl = new URL(
-    `/api/v1/${path.join("/")}${request.nextUrl.search}`,
-    API_BASE_URL,
-  );
+  // Normalize the search parameters to ensure empty/null/undefined values are not included in the forwarded request
+  const cleanedParams = new URLSearchParams();
+  request.nextUrl.searchParams.forEach((value, key) => {
+    if (value && value.trim() !== "") {
+      cleanedParams.set(key, value);
+    }
+  });
 
-  return fetch(backendUrl, {
+  const normalizedUrl = new URL(request.url);
+  normalizedUrl.search = cleanedParams.toString();
+
+  const normalizedRequest = new Request(normalizedUrl.toString(), {
     method: request.method,
     headers: createForwardHeaders(request, accessToken),
     body: await readRequestBody(request),
     cache: "no-store",
     redirect: "manual",
+  });
+
+  const backendUrl = new URL(
+    `/api/v1/${path.join("/")}${normalizedUrl.search}`,
+    API_BASE_URL,
+  );
+
+  return fetch(backendUrl, {
+    method: normalizedRequest.method,
+    headers: normalizedRequest.headers,
+    body: normalizedRequest.body,
+    cache: "no-store",
+    redirect: "manual",
+    ...(normalizedRequest.body && { duplex: "half" }),
   });
 }
 

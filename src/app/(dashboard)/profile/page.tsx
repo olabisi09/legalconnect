@@ -25,6 +25,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import z from "zod";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const userProfileSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
@@ -145,6 +146,12 @@ export default function ProfilePage() {
         </CardHeader>
 
         <CardContent>
+          <Tabs defaultValue="overview">
+            <TabsList variant="line">
+              <TabsTrigger value="overview">User Profile</TabsTrigger>
+              <TabsTrigger value="analytics">Organization</TabsTrigger>
+            </TabsList>
+          </Tabs>
           {profileQuery.isLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-8 w-full" />

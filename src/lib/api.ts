@@ -9,7 +9,19 @@ import {
   UserProfileResponse,
 } from "../types/profile";
 import { AuditLog } from "@/types/admin";
-import { Matter, MatterParams, MatterPayload } from "@/types/matter";
+import {
+  Matter,
+  MatterDetail,
+  MatterParams,
+  MatterPayload,
+} from "@/types/matter";
+import { get } from "http";
+import {
+  Organization,
+  OrganizationDetail,
+  OrganizationParams,
+} from "@/types/organization";
+import { CalendarEvent } from "@/types/calendar";
 
 export const authAPI = {
   login: async (payload: {
@@ -101,6 +113,33 @@ export const mattersAPI = {
       .get<ApiResponse<PagedResponse<Matter>>>("/matters", { params })
       .then(unwrap),
 
+  getMatterDetails: async (matterId: string) =>
+    await apiClient
+      .get<ApiResponse<MatterDetail>>(`/matters/${matterId}`)
+      .then(unwrap),
+
   createMatter: async (payload: MatterPayload) =>
     await apiClient.post<ApiResponse<Matter>>("/matters", payload).then(unwrap),
+};
+
+export const orgAPI = {
+  getOrgs: async (params?: OrganizationParams) =>
+    await apiClient
+      .get<ApiResponse<PagedResponse<Organization>>>("/organizations", {
+        params,
+      })
+      .then(unwrap),
+  getOrgDetails: async (orgId: string) =>
+    await apiClient
+      .get<ApiResponse<OrganizationDetail>>(`/organizations/${orgId}`)
+      .then(unwrap),
+};
+
+export const calendarAPI = {
+  getCalendarEvents: async (params?: { from?: string; to?: string }) =>
+    await apiClient
+      .get<ApiResponse<CalendarEvent[]>>("/calendar/events", {
+        params,
+      })
+      .then(unwrap),
 };

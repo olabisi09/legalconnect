@@ -10,12 +10,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(ACCESS_COOKIE)?.value;
+  // const cookieStore = await cookies();
+  // const accessToken = cookieStore.get(ACCESS_COOKIE)?.value;
 
-  if (!accessToken) {
-    redirect("/login");
-  }
+  // if (!accessToken) {
+  //   redirect("/login");
+  // }
 
   return (
     <SidebarProvider
