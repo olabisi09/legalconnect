@@ -1,3 +1,5 @@
+import { MATTER_STATUSES } from "@/lib/enums";
+
 export interface Matter {
   id: string;
   matterNumber: string;
@@ -49,6 +51,8 @@ export type MatterParams = Partial<
   page?: number;
   size?: number;
 };
+
+export type MatterStatus = (typeof MATTER_STATUSES)[number];
 
 export interface Timeline {
   id: string;

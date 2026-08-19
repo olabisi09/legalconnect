@@ -23,9 +23,10 @@ import { useAuthStore } from "@/store/auth-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import z from "zod";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OrgProfile } from "./_components/org-profile";
 
 const userProfileSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
@@ -44,6 +45,10 @@ type LawyerProfileValues = z.infer<typeof lawyerProfileSchema>;
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
+
+  const [activeTab, setActiveTab] = useState<"profile" | "organization">(
+    "profile",
+  );
 
   const profileQuery = useUserProfile(user?.id);
   const updateUserProfile = useUpdateUserProfile(user?.id);
@@ -141,54 +146,68 @@ export default function ProfilePage() {
         <CardHeader className="border-b">
           <CardTitle className="text-sm">Profile Settings</CardTitle>
           <CardDescription>
-            Update your first and last name. Email changes are managed by admin.
+            {activeTab === "profile"
+              ? "Update your first and last name. Email changes are managed by admin."
+              : "Firm details tied to your account. Contact your admin to make changes."}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <Tabs defaultValue="overview">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as typeof activeTab)}
+          >
             <TabsList variant="line">
-              <TabsTrigger value="overview">User Profile</TabsTrigger>
-              <TabsTrigger value="analytics">Organization</TabsTrigger>
+              <TabsTrigger value="profile">User Profile</TabsTrigger>
+              <TabsTrigger value="organization">Organization</TabsTrigger>
             </TabsList>
-          </Tabs>
-          {profileQuery.isLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </div>
-          ) : (
-            <FormProvider {...userProfileForm}>
-              <form
-                className="space-y-4"
-                onSubmit={userProfileForm.handleSubmit(handleUserProfileSubmit)}
-              >
-                <div className="space-y-1">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    readOnly
-                    value={profileQuery.data?.email ?? user?.email ?? ""}
-                    className="opacity-80"
-                  />
+
+            <TabsContent value="profile" className="pt-4">
+              {profileQuery.isLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
+                  <Skeleton className="h-8 w-full" />
                 </div>
-
-                <FormInput name="firstName" label="First Name" />
-                <FormInput name="lastName" label="Last Name" />
-
-                <CardFooter className="border-t px-0">
-                  <AppButton
-                    type="submit"
-                    loading={updateUserProfile.isPending}
-                    loadingText="Saving..."
+              ) : (
+                <FormProvider {...userProfileForm}>
+                  <form
+                    className="space-y-4"
+                    onSubmit={userProfileForm.handleSubmit(
+                      handleUserProfileSubmit,
+                    )}
                   >
-                    Save changes
-                  </AppButton>
-                </CardFooter>
-              </form>
-            </FormProvider>
-          )}
+                    <div className="space-y-1">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        readOnly
+                        value={profileQuery.data?.email ?? user?.email ?? ""}
+                        className="opacity-80"
+                      />
+                    </div>
+
+                    <FormInput name="firstName" label="First Name" />
+                    <FormInput name="lastName" label="Last Name" />
+
+                    <CardFooter className="border-t px-0">
+                      <AppButton
+                        type="submit"
+                        loading={updateUserProfile.isPending}
+                        loadingText="Saving..."
+                      >
+                        Save changes
+                      </AppButton>
+                    </CardFooter>
+                  </form>
+                </FormProvider>
+              )}
+            </TabsContent>
+
+            <TabsContent value="organization" className="pt-4">
+              <OrgProfile orgId={user?.orgId ?? ""} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </DashboardCard>
 

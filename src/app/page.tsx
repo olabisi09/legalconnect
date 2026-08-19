@@ -1,11 +1,6 @@
 import Link from "next/link";
-import { Newsreader, IBM_Plex_Mono } from "next/font/google";
 import PersonaTabs from "@/components/persona-tabs";
 import Reveal from "@/components/reveal";
-import { cn } from "@/lib/utils";
-
-// If your app already loads Inter globally for `font-sans`, you can drop
-// the Inter import here and just rely on the inherited font-sans class.
 
 function Navbar() {
   return (
@@ -63,18 +58,20 @@ function Navbar() {
           >
             For Your Firm
           </a>
-          <Link
-            href="/login"
-            className="rounded-sm border border-lc-ink px-4.5 py-2 text-[13.5px] font-medium text-lc-ink"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/signup"
-            className="rounded-sm border border-lc-stamp bg-lc-stamp px-5 py-2.5 text-[13.5px] font-semibold text-lc-paper transition-colors hover:bg-lc-stamp-dark"
-          >
-            Get started
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="rounded-sm border border-lc-ink px-5 py-2.5 text-[13.5px] font-medium text-lc-ink"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-sm border border-lc-stamp bg-lc-stamp px-5 py-2.5 text-[13.5px] font-semibold text-lc-paper transition-colors hover:bg-lc-stamp-dark"
+            >
+              Get started
+            </Link>
+          </div>
         </nav>
       </div>
     </header>
@@ -183,7 +180,7 @@ function CaseFolderMockup() {
 
 function Hero() {
   return (
-    <section className="px-7 pb-20 pt-24 md:pt-32">
+    <section className="px-7 pb-20 pt-24 md:pt-32 bg-lc-paper">
       <div className="mx-auto grid max-w-[1180px] items-center gap-[60px] lg:grid-cols-[1.05fr_0.95fr]">
         <div>
           <p className="flex items-center gap-2.5 font-plexmono text-[11.5px] font-semibold uppercase tracking-[0.14em] text-lc-stamp">
@@ -193,7 +190,7 @@ function Hero() {
           <h1 className="mt-[18px] font-newsreader text-[38px] font-medium leading-[1.04] tracking-tight text-lc-ink md:text-[58px]">
             Every matter,
             <br />
-            <em className="font-medium not-italic italic text-lc-stamp">
+            <em className="font-medium italic text-lc-stamp">
               fully on the record.
             </em>
           </h1>

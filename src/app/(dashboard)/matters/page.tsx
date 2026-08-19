@@ -4,7 +4,7 @@ import { AppButton } from "@/components/app-button";
 import { DataTable } from "@/components/data-table";
 import { Input } from "@/components/ui/input";
 import { useMatters } from "@/hooks/features/use-matters";
-import { RiAddLine, RiCloseLine, RiExportLine } from "@remixicon/react";
+import { RiAddLine, RiCloseLine, RiMoreLine } from "@remixicon/react";
 import { CreateMatter } from "./_components/create-matter";
 import { useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -22,6 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuthStore } from "@/store/auth-store";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 const badgeMap: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-700",
@@ -39,7 +43,9 @@ type ActiveFilter = {
 };
 
 export default function MattersPage() {
-  const [pageNumber, setPageNumber] = useState(1);
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const [pageNumber, setPageNumber] = useState(0);
   const [pageSize, setPageSize] = useState(20);
 
   const [search, setSearch] = useState("");
@@ -65,6 +71,8 @@ export default function MattersPage() {
   const [selectedMatterId, setSelectedMatterId] = useState<string>("");
 
   const matters = data?.data ?? [];
+
+  const canCreateMatter = user?.role !== "CLIENT" && user?.role !== "FINANCE";
 
   const columns: Array<TableColumnDef<Matter>> = [
     { accessorKey: "matterNumber", header: "Matter Number" },
@@ -92,6 +100,10 @@ export default function MattersPage() {
         </p>
       ),
     },
+    // {
+    //   header: "Actions",
+    //   cell: (row) => <DropdownMenu></DropdownMenu>,
+    // },
   ];
 
   const activeFilters: ActiveFilter[] = [
@@ -179,14 +191,12 @@ export default function MattersPage() {
           />
 
           <div className="ml-auto flex gap-2">
-            <AppButton variant="outline">
-              <RiExportLine />
-              Export
-            </AppButton>
-            <AppButton onClick={() => setOpen(true)}>
-              <RiAddLine />
-              Create Matter
-            </AppButton>
+            {canCreateMatter && (
+              <AppButton onClick={() => setOpen(true)}>
+                <RiAddLine />
+                Create Matter
+              </AppButton>
+            )}
           </div>
         </section>
 
@@ -224,8 +234,7 @@ export default function MattersPage() {
           columns={columns}
           loading={isLoading}
           onRowClick={(row) => {
-            setSelectedMatterId(row.id);
-            setOpenDetail(true);
+            router.push(`/matters/${row.id}`);
           }}
           pagination={{
             pageNumber,

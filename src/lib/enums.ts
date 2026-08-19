@@ -1,3 +1,12 @@
+export const ROLES = [
+  "SUPER_ADMIN",
+  "ADMIN",
+  "LAWYER",
+  "PARALEGAL",
+  "FINANCE",
+  "CLIENT",
+] as const;
+
 export const subscriptionTiers = [
   "STARTER",
   "PROFESSIONAL",

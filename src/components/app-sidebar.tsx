@@ -15,6 +15,7 @@ import {
   RiExpandUpDownLine,
   RiLogoutBoxRLine,
   RiHomeLine,
+  RiUserLine,
 } from "@remixicon/react";
 
 import {
@@ -44,7 +45,7 @@ const practiceNav = [
   { title: "Dashboard", href: "/dashboard", icon: RiHomeLine },
   { title: "Matters", href: "/matters", icon: RiFolderLine },
   { title: "Documents", href: "/documents", icon: RiFileTextLine },
-  { title: "Calendar", href: "/calendar", icon: RiCalendarLine },
+  { title: "Events", href: "/events", icon: RiCalendarLine },
   {
     title: "Conflict Check",
     href: "/conflicts",
@@ -68,10 +69,11 @@ const firmNav = [
     icon: RiScrollToBottomLine,
   },
   {
-    title: "Organization",
-    href: "/organization",
+    title: "Organizations",
+    href: "/organizations",
     icon: RiBuilding2Line,
   },
+  { title: "Profile", href: "/profile", icon: RiUserLine },
   { title: "Settings", href: "/settings", icon: RiSettings3Line },
 ];
 

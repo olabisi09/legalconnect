@@ -1,3 +1,5 @@
+import { ROLES } from "@/lib/enums";
+import { Permission } from "@/lib/permissions";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -6,11 +8,11 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: (typeof ROLES)[number];
   orgId: string | null;
   orgName: string | null;
   mfaRequired: boolean;
-  permissions: string[];
+  permissions: Permission[];
 }
 
 interface AuthState {

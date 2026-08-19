@@ -19,11 +19,15 @@ import {
   addDays,
   addMinutes,
   differenceInMinutes,
+  endOfMonth,
   format,
   setHours,
   startOfDay,
+  startOfMonth,
   startOfWeek,
 } from "date-fns";
+import { useEvents } from "@/hooks/features/use-events";
+import type { Event } from "@/types/event";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -65,6 +69,22 @@ const DURATIONS = [
   { value: 120, label: "2 hours" },
 ];
 
+/** Transform API Event to CalendarEvent, cycling through available colors */
+function transformApiEvent(event: Event, index: number): CalendarEvent {
+  return {
+    id: event.id,
+    title: event.title,
+    start: new Date(event.startTime),
+    end: new Date(event.endTime),
+    allDay: event.allDay,
+    color: COLORS[index % COLORS.length].value,
+  };
+}
+
+function transformApiEvents(apiEvents: Event[]): CalendarEvent[] {
+  return apiEvents.map((event, index) => transformApiEvent(event, index));
+}
+
 /** The one dialog is a create form when `id` is null and an edit form
  *  otherwise - a single working copy the calendar clicks seed. */
 interface EventDraft {
@@ -77,58 +97,16 @@ interface EventDraft {
   color: string;
 }
 
-function buildEvents(anchor: Date): CalendarEvent[] {
-  const week = startOfWeek(startOfDay(anchor), { weekStartsOn: 0 });
-  const at = (dayOffset: number, hour: number) =>
-    setHours(addDays(week, dayOffset), hour);
-  return [
-    {
-      id: "kickoff",
-      title: "Project kickoff",
-      start: at(1, 10),
-      end: at(1, 11),
-      color: COLORS[0].value,
-    },
-    {
-      id: "1on1",
-      title: "1:1 with Mia",
-      start: at(2, 14),
-      end: at(2, 15),
-      color: COLORS[1].value,
-    },
-    {
-      id: "review",
-      title: "Design review",
-      start: at(4, 11),
-      end: at(4, 12),
-      color: COLORS[2].value,
-    },
-    {
-      id: "standup",
-      title: "Team standup",
-      start: at(3, 9),
-      end: addMinutes(at(3, 9), 30),
-      color: COLORS[3].value,
-    },
-    {
-      id: "interview",
-      title: "Candidate interview",
-      start: at(5, 13),
-      end: at(5, 14),
-      color: COLORS[4].value,
-    },
-    {
-      id: "retro",
-      title: "Sprint retro",
-      start: at(5, 16),
-      end: at(5, 17),
-      color: COLORS[1].value,
-    },
-  ];
-}
+export default function EventPage() {
+  const now = new Date();
+  const monthStart = startOfMonth(now).toISOString();
+  const monthEnd = endOfMonth(now).toISOString();
 
-export default function CalendarPage() {
-  const events = useMemo(() => buildEvents(new Date()), []);
+  const { data: apiEvents = [] } = useEvents({
+    from: monthStart,
+    to: monthEnd,
+  });
+  const events = useMemo(() => transformApiEvents(apiEvents), [apiEvents]);
   const apiRef = useRef<EventCalendarApi | null>(null);
   const counter = useRef(0);
   const [open, setOpen] = useState(false);

@@ -111,12 +111,12 @@ export function DataTable<TData extends RowData>({
       {pagination && (
         <div className="py-4">
           <AppPagination
-            pageIndex={pagination?.pageNumber - 1}
+            pageIndex={pagination?.pageNumber}
             pageCount={totalPages}
             canPreviousPage={table.getCanPreviousPage()}
             canNextPage={table.getCanNextPage()}
             pageSize={pagination?.pageSize ?? 0}
-            onPageChange={(index) => pagination?.onPageChange(index + 1)}
+            onPageChange={(index) => pagination?.onPageChange(index)}
             onPageSizeChange={(size) => pagination?.onPageSizeChange(size)}
           />
         </div>
