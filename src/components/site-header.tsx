@@ -16,14 +16,15 @@ import {
   useNotifications,
   useNotificationUnreadCount,
 } from "@/hooks/features/use-notifications";
-import { Skeletonize } from "./skeletonize";
+import { AppEmpty } from "./app-empty";
 
 export function SiteHeader() {
   const pathname = usePathname();
   const { data, isLoading } = useNotifications();
-  const { data: unreadCount } = useNotificationUnreadCount();
+  const { data: unreadCountData } = useNotificationUnreadCount();
 
   const notifications = data?.data ?? [];
+  const unreadCount = unreadCountData ?? 0;
 
   const routeMap: Record<string, string> = {
     "/dashboard": "Dashboard",
@@ -44,48 +45,47 @@ export function SiteHeader() {
           </h1>
         </div>
         <Popover>
-          <PopoverTrigger render={<Button variant="outline" size="icon" />}>
+          <PopoverTrigger
+            className="relative"
+            render={<Button variant="outline" size="icon" />}
+          >
             <RiNotification2Line />
+            {unreadCount > 0 && (
+              <span className="bg-red-500 grid place-items-center text-[10px] text-white rounded-full w-4 h-4 absolute -top-1 -right-2">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </PopoverTrigger>
           <PopoverContent align="start" className="py-2 px-0">
             <PopoverHeader className="px-4 pb-2 border-b">
               <PopoverTitle className="flex items-center justify-between">
                 <p>Notifications</p>
-                <Button variant="ghost">Mark all as read</Button>
+                {unreadCount > 0 && (
+                  <Button variant="ghost">Mark all as read</Button>
+                )}
               </PopoverTitle>
             </PopoverHeader>
             <div className="px-4 flex flex-col gap-2">
-              <Skeletonize loading={true}>
-                {/* {notifications.map((notification, index) => (
+              {isLoading ? (
+                <>
+                  <NotificationSkeleton />
+                  <NotificationSkeleton />
+                  <NotificationSkeleton />
+                </>
+              ) : notifications?.length ? (
+                notifications.map((notification) => (
                   <NotificationItem
-                    key={notification.id ?? `notification-${index}`}
+                    key={notification.id}
                     title={notification.title}
                     description={notification.body}
                   />
-                ))} */}
-                <div className="flex items-center gap-4">
-                  <RiInformationLine className="size-4" />
-                  <div className="flex flex-col">
-                    <p className="font-medium">title</p>
-                    <p className="text-muted-foreground">description</p>
-                  </div>
-                </div>
-              </Skeletonize>
-              {/* {isLoading ? (
-                <div>Loading...</div>
-              ) : notifications?.length ? (
-                <Skeletonize loading={true}>
-                  {notifications.map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      title={notification.title}
-                      description={notification.body}
-                    />
-                  ))}
-                </Skeletonize>
+                ))
               ) : (
-                <div>No notifications</div>
-              )} */}
+                <AppEmpty
+                  title="No notifications available"
+                  icon={<RiNotification2Line />}
+                />
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -107,6 +107,18 @@ function NotificationItem({
       <div className="flex flex-col">
         <p className="font-medium">{title || "Title"}</p>
         <p className="text-muted-foreground">{description || "Description"}</p>
+      </div>
+    </div>
+  );
+}
+
+function NotificationSkeleton() {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="size-4 rounded-full bg-muted" />
+      <div className="flex flex-col gap-1">
+        <div className="h-3 w-32 rounded bg-muted" />
+        <div className="h-2 w-48 rounded bg-muted" />
       </div>
     </div>
   );

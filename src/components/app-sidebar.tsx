@@ -40,10 +40,19 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/store/auth-store";
 import { useLogout } from "@/hooks/features/use-auth";
 import { getInitials } from "@/lib/utils";
+import { P, Permission } from "@/lib/permissions";
+import { usePermission } from "@/hooks/use-permission";
+
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ElementType;
+  permission?: Permission;
+}
 
 const practiceNav = [
   { title: "Dashboard", href: "/dashboard", icon: RiHomeLine },
-  { title: "Matters", href: "/matters", icon: RiFolderLine },
+  { title: "Case Management", href: "/cases", icon: RiFolderLine },
   { title: "Documents", href: "/documents", icon: RiFileTextLine },
   { title: "Events", href: "/events", icon: RiCalendarLine },
   {
@@ -72,6 +81,7 @@ const firmNav = [
     title: "Organizations",
     href: "/organizations",
     icon: RiBuilding2Line,
+    permission: P.ORGANIZATION_READ,
   },
   { title: "Profile", href: "/profile", icon: RiUserLine },
   { title: "Settings", href: "/settings", icon: RiSettings3Line },
@@ -83,28 +93,31 @@ function NavGroup({
   pathname,
 }: {
   label: string;
-  items: typeof practiceNav;
+  items: NavItem[];
   pathname: string;
 }) {
+  const { has } = usePermission();
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="font-plexmono text-[10px] tracking-widest text-sidebar-foreground/45">
         {label}
       </SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.href}>
-            <SidebarMenuButton
-              isActive={pathname.startsWith(item.href)}
-              render={
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </Link>
-              }
-            />
-          </SidebarMenuItem>
-        ))}
+        {items
+          .filter((x) => !x.permission || has(x.permission))
+          .map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                isActive={pathname.startsWith(item.href)}
+                render={
+                  <Link href={item.href}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                }
+              />
+            </SidebarMenuItem>
+          ))}
       </SidebarMenu>
     </SidebarGroup>
   );
@@ -124,7 +137,7 @@ export function AppSidebar() {
           </span>
           <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
             <span className="truncate font-newsreader text-sm font-medium text-sidebar-foreground">
-              Halvorsen &amp; Reyes LLP
+              {user?.orgName || "LegalConnect"}
             </span>
             {/* <span className="font-plexmono text-[10px] text-sidebar-foreground/50">
               MATTER OS

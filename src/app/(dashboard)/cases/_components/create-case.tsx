@@ -1,28 +1,32 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm, useFieldArray, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { RiAddLine, RiCloseLine, RiCheckLine } from "@remixicon/react";
-import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { FormInput } from "@/components/forms/form-input";
-import { FormSelect } from "@/components/forms/form-select";
-import { AppButton } from "@/components/app-button";
-import { useUpdateMatter } from "@/hooks/features/use-matters";
+import { useCreateCase } from "@/hooks/features/use-cases";
 import { ENTITY_TYPES, PARTY_TYPES, PRIORITY_LEVELS } from "@/lib/enums";
-import { MatterDetail } from "@/types/matter";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import z from "zod";
+import { FormInput } from "@/components/forms/form-input";
+import { AppButton } from "@/components/app-button";
+import {
+  RiAddLine,
+  RiCloseLine,
+  RiUser3Line,
+  RiBuildingLine,
+  RiStarFill,
+  RiStarLine,
+} from "@remixicon/react";
+import { FormSelect } from "@/components/forms/form-select";
+import { cn } from "@/lib/utils";
 import { FormTextarea } from "@/components/forms/form-textarea";
 
 const partySchema = z
@@ -61,7 +65,7 @@ const partySchema = z
     }
   });
 
-const matterSchema = z.object({
+const caseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   practiceArea: z.string().min(1, "Practice area is required"),
@@ -70,9 +74,9 @@ const matterSchema = z.object({
   parties: z.array(partySchema).min(1, "Add at least one party"),
 });
 
-type EditMatterValues = z.infer<typeof matterSchema>;
+type CreateCaseValues = z.infer<typeof caseSchema>;
 
-const emptyParty: EditMatterValues["parties"][number] = {
+const emptyParty: CreateCaseValues["parties"][number] = {
   partyType: "CLIENT_INDIVIDUAL",
   entityType: "INDIVIDUAL",
   firstName: "",
@@ -83,64 +87,26 @@ const emptyParty: EditMatterValues["parties"][number] = {
   primaryClient: false,
 };
 
-function mapPartiesToFormValues(
-  parties: MatterDetail["parties"],
-): EditMatterValues["parties"] {
-  return parties.map((p) => ({
-    partyType: p.partyType as EditMatterValues["parties"][number]["partyType"],
-    entityType:
-      p.entityType as EditMatterValues["parties"][number]["entityType"],
-    firstName: p.firstName,
-    lastName: p.lastName,
-    entityName: p.entityName,
-    email: p.email,
-    phone: p.phone,
-    primaryClient: p.primaryClient,
-  }));
-}
-
-export function EditMatterModal({
-  matter,
+export function CreateCase({
   open,
   onOpenChange,
 }: {
-  matter: MatterDetail;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const updateMatter = useUpdateMatter();
+  const createCase = useCreateCase();
 
-  const form = useForm<EditMatterValues>({
-    resolver: zodResolver(matterSchema),
+  const form = useForm<CreateCaseValues>({
+    resolver: zodResolver(caseSchema),
     defaultValues: {
-      title: matter?.title || "",
-      description: matter?.description || "",
-      practiceArea: matter?.practiceArea || "",
-      jurisdictionCode: matter?.jurisdictionCode || "",
-      priority: (matter?.priority || "NORMAL") as any,
-      parties:
-        (matter?.parties?.length || 0) > 0
-          ? mapPartiesToFormValues(matter.parties)
-          : [{ ...emptyParty, primaryClient: true }],
+      title: "",
+      description: "",
+      practiceArea: "",
+      jurisdictionCode: "",
+      priority: "MEDIUM",
+      parties: [{ ...emptyParty, primaryClient: true }],
     },
   });
-
-  // Reset form when matter changes
-  useEffect(() => {
-    if (matter) {
-      form.reset({
-        title: matter.title || "",
-        description: matter.description || "",
-        practiceArea: matter.practiceArea || "",
-        jurisdictionCode: matter.jurisdictionCode || "",
-        priority: (matter.priority || "NORMAL") as any,
-        parties:
-          (matter.parties?.length || 0) > 0
-            ? mapPartiesToFormValues(matter.parties)
-            : [{ ...emptyParty, primaryClient: true }],
-      });
-    }
-  }, [matter, form]);
 
   const {
     fields: partyFields,
@@ -151,7 +117,7 @@ export function EditMatterModal({
     name: "parties",
   });
 
-  const onSubmit = async (values: EditMatterValues) => {
+  const onSubmit = async (values: CreateCaseValues) => {
     const payload = {
       ...values,
       parties: values.parties.map((party) => ({
@@ -160,15 +126,12 @@ export function EditMatterModal({
       })),
     };
 
-    await updateMatter.mutateAsync(
-      { matterId: matter.id, payload },
-      {
-        onSuccess: () => {
-          form.reset();
-          onOpenChange(false);
-        },
+    await createCase.mutateAsync(payload, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
       },
-    );
+    });
   };
 
   const partyTypeOptions = PARTY_TYPES.map((type) => ({
@@ -216,7 +179,7 @@ export function EditMatterModal({
                 className="flex min-h-0 flex-1 flex-col"
               >
                 <DialogHeader className="bg-background sticky top-0 z-10 border-b px-6 py-4">
-                  <DialogTitle>Edit Matter</DialogTitle>
+                  <DialogTitle>Create Case</DialogTitle>
                 </DialogHeader>
 
                 <div className="transparent-scrollbar me-0.5 flex-1 overflow-auto px-6 py-4">
@@ -229,7 +192,7 @@ export function EditMatterModal({
                     <FormTextarea
                       name="description"
                       label="Description"
-                      placeholder="Brief summary of the matter"
+                      placeholder="Brief summary of the case"
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormInput
@@ -258,7 +221,7 @@ export function EditMatterModal({
                           Parties
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Everyone involved in this matter
+                          Everyone involved in this case
                         </p>
                       </div>
                       <span className="text-xs text-muted-foreground">
@@ -279,6 +242,7 @@ export function EditMatterModal({
                         const entityType = form.watch(
                           `parties.${index}.entityType`,
                         );
+
                         const isPrimary = form.watch(
                           `parties.${index}.primaryClient`,
                         );
@@ -300,13 +264,10 @@ export function EditMatterModal({
                                     isPrimary && "bg-primary/10 text-primary",
                                   )}
                                 >
-                                  {isPrimary && (
-                                    <RiCheckLine className="size-4" />
-                                  )}
-                                  {!isPrimary && (
-                                    <span className="text-xs font-semibold">
-                                      {index + 1}
-                                    </span>
+                                  {entityType === "INDIVIDUAL" ? (
+                                    <RiUser3Line className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <RiBuildingLine className="h-3.5 w-3.5" />
                                   )}
                                 </div>
                                 <span className="text-sm font-medium">
@@ -316,30 +277,47 @@ export function EditMatterModal({
                                   variant="outline"
                                   className="font-normal text-muted-foreground"
                                 >
-                                  {form
-                                    .watch(`parties.${index}.partyType`)
-                                    ?.replace(/_/g, " ")}
+                                  {
+                                    partyTypeOptions.find(
+                                      (o) => o.value === field.partyType,
+                                    )?.label
+                                  }
                                 </Badge>
                               </div>
 
                               <div className="flex items-center gap-1">
-                                <label className="cursor-pointer flex items-center gap-2 text-xs text-muted-foreground px-2 py-1 rounded hover:bg-muted">
-                                  <input
-                                    {...form.register(
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    form.setValue(
                                       `parties.${index}.primaryClient`,
-                                    )}
-                                    type="checkbox"
-                                    className="size-3.5"
-                                  />
+                                      !isPrimary,
+                                      { shouldDirty: true },
+                                    )
+                                  }
+                                  className={cn(
+                                    "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-colors",
+                                    isPrimary
+                                      ? "bg-primary/10 text-primary"
+                                      : "text-muted-foreground hover:bg-muted",
+                                  )}
+                                >
+                                  {isPrimary ? (
+                                    <RiStarFill className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <RiStarLine className="h-3.5 w-3.5" />
+                                  )}
                                   Primary
-                                </label>
+                                </button>
+
                                 {partyFields.length > 1 && (
                                   <button
                                     type="button"
                                     onClick={() => removeParty(index)}
-                                    className="text-muted-foreground hover:text-destructive p-1.5 rounded-md hover:bg-destructive/10 transition-colors"
+                                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                                    aria-label={`Remove party ${index + 1}`}
                                   >
-                                    <RiCloseLine className="size-4" />
+                                    <RiCloseLine className="h-4 w-4" />
                                   </button>
                                 )}
                               </div>
@@ -363,20 +341,18 @@ export function EditMatterModal({
                               </div>
 
                               {entityType === "INDIVIDUAL" ? (
-                                <>
-                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                    <FormInput
-                                      name={`parties.${index}.firstName`}
-                                      label="First Name"
-                                      placeholder="e.g John"
-                                    />
-                                    <FormInput
-                                      name={`parties.${index}.lastName`}
-                                      label="Last Name"
-                                      placeholder="e.g Doe"
-                                    />
-                                  </div>
-                                </>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                  <FormInput
+                                    name={`parties.${index}.firstName`}
+                                    label="First Name"
+                                    placeholder="e.g John"
+                                  />
+                                  <FormInput
+                                    name={`parties.${index}.lastName`}
+                                    label="Last Name"
+                                    placeholder="e.g Doe"
+                                  />
+                                </div>
                               ) : (
                                 <FormInput
                                   name={`parties.${index}.entityName`}
@@ -423,7 +399,7 @@ export function EditMatterModal({
                   </DialogClose>
                   <AppButton
                     type="submit"
-                    loading={updateMatter.isPending}
+                    loading={createCase.isPending}
                     loadingText="Saving..."
                   >
                     Save changes

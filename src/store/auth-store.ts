@@ -1,5 +1,5 @@
-import { ROLES } from "@/lib/enums";
 import { Permission } from "@/lib/permissions";
+import { OrgRole } from "@/types/auth";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -8,7 +8,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: (typeof ROLES)[number];
+  role: OrgRole;
   orgId: string | null;
   orgName: string | null;
   mfaRequired: boolean;

@@ -1,32 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
+import { useForm, useFieldArray, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { RiAddLine, RiCloseLine, RiCheckLine } from "@remixicon/react";
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { useCreateMatter } from "@/hooks/features/use-matters";
-import { ENTITY_TYPES, PARTY_TYPES, PRIORITY_LEVELS } from "@/lib/enums";
-import { FormProvider, useFieldArray, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
+import { Badge } from "@/components/ui/badge";
 import { FormInput } from "@/components/forms/form-input";
-import { AppButton } from "@/components/app-button";
-import {
-  RiAddLine,
-  RiCloseLine,
-  RiUser3Line,
-  RiBuildingLine,
-  RiStarFill,
-  RiStarLine,
-} from "@remixicon/react";
 import { FormSelect } from "@/components/forms/form-select";
-import { cn } from "@/lib/utils";
+import { AppButton } from "@/components/app-button";
+import { useUpdateCase } from "@/hooks/features/use-cases";
+import { ENTITY_TYPES, PARTY_TYPES, PRIORITY_LEVELS } from "@/lib/enums";
+import { CaseDetail } from "@/types/case";
+import { FormTextarea } from "@/components/forms/form-textarea";
 
 const partySchema = z
   .object({
@@ -64,7 +61,7 @@ const partySchema = z
     }
   });
 
-const matterSchema = z.object({
+const caseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   practiceArea: z.string().min(1, "Practice area is required"),
@@ -73,9 +70,9 @@ const matterSchema = z.object({
   parties: z.array(partySchema).min(1, "Add at least one party"),
 });
 
-type CreateMatterValues = z.infer<typeof matterSchema>;
+type EditCaseValues = z.infer<typeof caseSchema>;
 
-const emptyParty: CreateMatterValues["parties"][number] = {
+const emptyParty: EditCaseValues["parties"][number] = {
   partyType: "CLIENT_INDIVIDUAL",
   entityType: "INDIVIDUAL",
   firstName: "",
@@ -86,26 +83,63 @@ const emptyParty: CreateMatterValues["parties"][number] = {
   primaryClient: false,
 };
 
-export function CreateMatter({
+function mapPartiesToFormValues(
+  parties: CaseDetail["parties"],
+): EditCaseValues["parties"] {
+  return parties.map((p) => ({
+    partyType: p.partyType as EditCaseValues["parties"][number]["partyType"],
+    entityType: p.entityType as EditCaseValues["parties"][number]["entityType"],
+    firstName: p.firstName,
+    lastName: p.lastName,
+    entityName: p.entityName,
+    email: p.email,
+    phone: p.phone,
+    primaryClient: p.primaryClient,
+  }));
+}
+
+export function EditCaseModal({
+  case: caseDetail,
   open,
   onOpenChange,
 }: {
+  case: CaseDetail;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const createMatter = useCreateMatter();
+  const updateCase = useUpdateCase();
 
-  const form = useForm<CreateMatterValues>({
-    resolver: zodResolver(matterSchema),
+  const form = useForm<EditCaseValues>({
+    resolver: zodResolver(caseSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      practiceArea: "",
-      jurisdictionCode: "",
-      priority: "NORMAL",
-      parties: [{ ...emptyParty, primaryClient: true }],
+      title: caseDetail?.title || "",
+      description: caseDetail?.description || "",
+      practiceArea: caseDetail?.practiceArea || "",
+      jurisdictionCode: caseDetail?.jurisdictionCode || "",
+      priority: (caseDetail?.priority || "NORMAL") as any,
+      parties:
+        (caseDetail?.parties?.length || 0) > 0
+          ? mapPartiesToFormValues(caseDetail.parties)
+          : [{ ...emptyParty, primaryClient: true }],
     },
   });
+
+  // Reset form when matter changes
+  useEffect(() => {
+    if (caseDetail) {
+      form.reset({
+        title: caseDetail.title || "",
+        description: caseDetail.description || "",
+        practiceArea: caseDetail.practiceArea || "",
+        jurisdictionCode: caseDetail.jurisdictionCode || "",
+        priority: (caseDetail.priority || "NORMAL") as any,
+        parties:
+          (caseDetail.parties?.length || 0) > 0
+            ? mapPartiesToFormValues(caseDetail.parties)
+            : [{ ...emptyParty, primaryClient: true }],
+      });
+    }
+  }, [caseDetail, form]);
 
   const {
     fields: partyFields,
@@ -116,7 +150,7 @@ export function CreateMatter({
     name: "parties",
   });
 
-  const onSubmit = async (values: CreateMatterValues) => {
+  const onSubmit = async (values: EditCaseValues) => {
     const payload = {
       ...values,
       parties: values.parties.map((party) => ({
@@ -125,12 +159,15 @@ export function CreateMatter({
       })),
     };
 
-    await createMatter.mutateAsync(payload, {
-      onSuccess: () => {
-        form.reset();
-        onOpenChange(false);
+    await updateCase.mutateAsync(
+      { caseId: caseDetail.id, payload },
+      {
+        onSuccess: () => {
+          form.reset();
+          onOpenChange(false);
+        },
       },
-    });
+    );
   };
 
   const partyTypeOptions = PARTY_TYPES.map((type) => ({
@@ -178,7 +215,7 @@ export function CreateMatter({
                 className="flex min-h-0 flex-1 flex-col"
               >
                 <DialogHeader className="bg-background sticky top-0 z-10 border-b px-6 py-4">
-                  <DialogTitle>Create Matter</DialogTitle>
+                  <DialogTitle>Edit Case</DialogTitle>
                 </DialogHeader>
 
                 <div className="transparent-scrollbar me-0.5 flex-1 overflow-auto px-6 py-4">
@@ -188,21 +225,23 @@ export function CreateMatter({
                       label="Title"
                       placeholder="e.g Smith vs. Johnson"
                     />
-                    <FormInput
+                    <FormTextarea
                       name="description"
                       label="Description"
                       placeholder="Brief summary of the matter"
                     />
-                    <FormInput
-                      name="practiceArea"
-                      label="Practice Area"
-                      placeholder="e.g Family Law"
-                    />
-                    <FormInput
-                      name="jurisdictionCode"
-                      label="Jurisdiction"
-                      placeholder="e.g CA"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormInput
+                        name="practiceArea"
+                        label="Practice Area"
+                        placeholder="e.g Family Law"
+                      />
+                      <FormInput
+                        name="jurisdictionCode"
+                        label="Jurisdiction"
+                        placeholder="e.g CA"
+                      />
+                    </div>
                     <FormSelect
                       name="priority"
                       label="Priority"
@@ -239,7 +278,6 @@ export function CreateMatter({
                         const entityType = form.watch(
                           `parties.${index}.entityType`,
                         );
-                        // eslint-disable-next-line react-hooks/incompatible-library
                         const isPrimary = form.watch(
                           `parties.${index}.primaryClient`,
                         );
@@ -249,8 +287,7 @@ export function CreateMatter({
                             key={field.id}
                             className={cn(
                               "group relative rounded-lg border bg-card shadow-sm transition-colors",
-                              isPrimary &&
-                                "border-primary/40 bg-primary/[0.03]",
+                              isPrimary && "border-primary/40 bg-primary/3",
                             )}
                           >
                             {/* Card header */}
@@ -262,10 +299,13 @@ export function CreateMatter({
                                     isPrimary && "bg-primary/10 text-primary",
                                   )}
                                 >
-                                  {entityType === "INDIVIDUAL" ? (
-                                    <RiUser3Line className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <RiBuildingLine className="h-3.5 w-3.5" />
+                                  {isPrimary && (
+                                    <RiCheckLine className="size-4" />
+                                  )}
+                                  {!isPrimary && (
+                                    <span className="text-xs font-semibold">
+                                      {index + 1}
+                                    </span>
                                   )}
                                 </div>
                                 <span className="text-sm font-medium">
@@ -275,47 +315,30 @@ export function CreateMatter({
                                   variant="outline"
                                   className="font-normal text-muted-foreground"
                                 >
-                                  {
-                                    partyTypeOptions.find(
-                                      (o) => o.value === field.partyType,
-                                    )?.label
-                                  }
+                                  {form
+                                    .watch(`parties.${index}.partyType`)
+                                    ?.replace(/_/g, " ")}
                                 </Badge>
                               </div>
 
                               <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    form.setValue(
+                                <label className="cursor-pointer flex items-center gap-2 text-xs text-muted-foreground px-2 py-1 rounded hover:bg-muted">
+                                  <input
+                                    {...form.register(
                                       `parties.${index}.primaryClient`,
-                                      !isPrimary,
-                                      { shouldDirty: true },
-                                    )
-                                  }
-                                  className={cn(
-                                    "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-colors",
-                                    isPrimary
-                                      ? "bg-primary/10 text-primary"
-                                      : "text-muted-foreground hover:bg-muted",
-                                  )}
-                                >
-                                  {isPrimary ? (
-                                    <RiStarFill className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <RiStarLine className="h-3.5 w-3.5" />
-                                  )}
+                                    )}
+                                    type="checkbox"
+                                    className="size-3.5"
+                                  />
                                   Primary
-                                </button>
-
+                                </label>
                                 {partyFields.length > 1 && (
                                   <button
                                     type="button"
                                     onClick={() => removeParty(index)}
-                                    className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                                    aria-label={`Remove party ${index + 1}`}
+                                    className="text-muted-foreground hover:text-destructive p-1.5 rounded-md hover:bg-destructive/10 transition-colors"
                                   >
-                                    <RiCloseLine className="h-4 w-4" />
+                                    <RiCloseLine className="size-4" />
                                   </button>
                                 )}
                               </div>
@@ -339,18 +362,20 @@ export function CreateMatter({
                               </div>
 
                               {entityType === "INDIVIDUAL" ? (
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                  <FormInput
-                                    name={`parties.${index}.firstName`}
-                                    label="First Name"
-                                    placeholder="e.g John"
-                                  />
-                                  <FormInput
-                                    name={`parties.${index}.lastName`}
-                                    label="Last Name"
-                                    placeholder="e.g Doe"
-                                  />
-                                </div>
+                                <>
+                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <FormInput
+                                      name={`parties.${index}.firstName`}
+                                      label="First Name"
+                                      placeholder="e.g John"
+                                    />
+                                    <FormInput
+                                      name={`parties.${index}.lastName`}
+                                      label="Last Name"
+                                      placeholder="e.g Doe"
+                                    />
+                                  </div>
+                                </>
                               ) : (
                                 <FormInput
                                   name={`parties.${index}.entityName`}
@@ -380,7 +405,7 @@ export function CreateMatter({
                     <button
                       type="button"
                       onClick={() => appendParty({ ...emptyParty })}
-                      className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/[0.03] hover:text-primary"
+                      className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed py-2.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/3 hover:text-primary"
                     >
                       <RiAddLine className="h-4 w-4" />
                       Add party
@@ -397,7 +422,7 @@ export function CreateMatter({
                   </DialogClose>
                   <AppButton
                     type="submit"
-                    loading={createMatter.isPending}
+                    loading={updateCase.isPending}
                     loadingText="Saving..."
                   >
                     Save changes

@@ -1,9 +1,11 @@
+import { OrgRole } from "./auth";
+
 export interface UserProfileResponse {
   userId?: string;
   email: string;
   firstName: string;
   lastName: string;
-  role?: string;
+  role?: OrgRole;
 }
 
 export interface UpdateUserProfileRequest {

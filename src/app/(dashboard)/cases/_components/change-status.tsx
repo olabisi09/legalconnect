@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import { FormSelect } from "@/components/forms/form-select";
 import { AppButton } from "@/components/app-button";
-import { useChangeMatterStatus } from "@/hooks/features/use-matters";
+import { useChangeCaseStatus } from "@/hooks/features/use-cases";
 import { MATTER_STATUSES } from "@/lib/enums";
 import { capitalize } from "@/lib/utils";
-import { MatterStatus } from "@/types/matter";
+import { CaseStatus } from "@/types/case";
 import { FormTextarea } from "@/components/forms/form-textarea";
 
 const statusSchema = z.object({
@@ -43,17 +43,17 @@ const STATUS_WORKFLOW: Record<string, string[]> = {
 };
 
 export function ChangeStatusModal({
-  matterId,
+  caseId,
   currentStatus,
   open,
   onOpenChange,
 }: {
-  matterId: string;
+  caseId: string;
   currentStatus: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const changeStatus = useChangeMatterStatus();
+  const changeStatus = useChangeCaseStatus();
   const [showAllStatuses, setShowAllStatuses] = useState(false);
 
   const form = useForm<ChangeStatusValues>({
@@ -78,8 +78,8 @@ export function ChangeStatusModal({
   const onSubmit = async (values: ChangeStatusValues) => {
     await changeStatus.mutateAsync(
       {
-        matterId,
-        status: values.status as MatterStatus,
+        caseId,
+        status: values.status as CaseStatus,
         reason: values.reason,
       },
       {
@@ -97,8 +97,7 @@ export function ChangeStatusModal({
         <DialogHeader>
           <DialogTitle>Change Matter Status</DialogTitle>
           <DialogDescription>
-            Update the status of this matter and provide a reason for the
-            change.
+            Update the status of this case and provide a reason for the change.
           </DialogDescription>
         </DialogHeader>
 
@@ -146,7 +145,7 @@ export function ChangeStatusModal({
             <FormTextarea
               name="reason"
               label="Reason for change"
-              placeholder="Explain why you're changing the status of this matter..."
+              placeholder="Explain why you're changing the status of this case..."
             />
 
             <DialogFooter>

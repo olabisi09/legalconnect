@@ -51,7 +51,7 @@ export const ENTITY_TYPES = [
   "OTHER",
 ] as const;
 
-export const PRIORITY_LEVELS = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
+export const PRIORITY_LEVELS = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 
 export const MATTER_STATUSES = [
   "DRAFT",
@@ -60,4 +60,50 @@ export const MATTER_STATUSES = [
   "PENDING",
   "CLOSED",
   "ARCHIVED",
+] as const;
+
+export const CASE_STATUSES = [
+  "INTAKE",
+  "ACTIVE",
+  "RESOLVED",
+  "CLOSED",
+] as const;
+
+export const CASE_TYPES = [
+  "LITIGATION",
+  "TRANSACTION",
+  "CORPORATE",
+  "FAMILY",
+  "PROBATE",
+  "INTERNAL",
+] as const;
+
+export const STAGE_TYPES = [
+  "INTAKE",
+  "PLEADING",
+  "DISCOVERY",
+  "MOTIONS",
+  "PRE_TRIAL",
+  "TRIAL",
+  "POST_TRIAL",
+  "DILIGENCE",
+  "DRAFTING",
+  "NEGOTIATION",
+  "EXECUTION",
+  "POST_CLOSING",
+  "RESEARCH",
+  "REVIEW",
+  "DELIVERY",
+  "INVESTIGATION",
+  "ANALYSIS",
+  "REPORTING",
+  "REMEDIATION",
+  "MONITORING",
+  "INITIATION",
+  "PANEL_SELECTION",
+  "PRELIMINARY",
+  "HEARING",
+  "AWARD",
+  "ACTION",
+  "RECORD",
 ] as const;

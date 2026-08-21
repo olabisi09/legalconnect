@@ -10,12 +10,12 @@ import {
 } from "../types/profile";
 import { AuditLog } from "@/types/admin";
 import {
-  Matter,
-  MatterDetail,
-  MatterParams,
-  MatterPayload,
-  MatterStatus,
-} from "@/types/matter";
+  Case,
+  CaseDetail,
+  CaseParams,
+  CasePayload,
+  CaseStatus,
+} from "@/types/case";
 import {
   Organization,
   OrganizationDetail,
@@ -108,57 +108,72 @@ export const auditAPI = {
       .then(unwrap),
 };
 
-export const mattersAPI = {
-  getMatters: async (params?: MatterParams) =>
+export const caseAPI = {
+  getCases: async (params?: CaseParams) =>
     await apiClient
-      .get<ApiResponse<PagedResponse<Matter>>>("/matters", { params })
+      .get<ApiResponse<PagedResponse<Case>>>("/cases", { params })
       .then(unwrap),
 
-  getMatterDetails: async (matterId: string) =>
+  getCaseDetails: async (caseId: string) =>
     await apiClient
-      .get<ApiResponse<MatterDetail>>(`/matters/${matterId}`)
+      .get<ApiResponse<CaseDetail>>(`/cases/${caseId}`)
       .then(unwrap),
 
-  createMatter: async (payload: MatterPayload) =>
-    await apiClient.post<ApiResponse<Matter>>("/matters", payload).then(unwrap),
+  createCase: async (payload: CasePayload) =>
+    await apiClient.post<ApiResponse<Case>>("/cases", payload).then(unwrap),
 
-  updateMatter: async (matterId: string, payload: Partial<MatterPayload>) =>
+  updateCase: async (caseId: string, payload: Partial<CasePayload>) =>
     await apiClient
-      .put<ApiResponse<Matter>>(`/matters/${matterId}`, payload)
+      .put<ApiResponse<Case>>(`/cases/${caseId}`, payload)
       .then(unwrap),
 
-  deleteMatter: async (matterId: string) =>
+  deleteCase: async (caseId: string) =>
     await apiClient
-      .delete<ApiResponse<{ message: string }>>(`/matters/${matterId}`)
+      .delete<ApiResponse<{ message: string }>>(`/cases/${caseId}`)
       .then(unwrap),
 
   changeStatus: async ({
-    matterId,
+    caseId,
     ...rest
   }: {
-    matterId: string;
-    status: MatterStatus;
+    caseId: string;
+    status: CaseStatus;
     reason: string;
   }) =>
     await apiClient
-      .patch<ApiResponse<any>>(`/matters/${matterId}/status`, rest)
+      .patch<ApiResponse<any>>(`/cases/${caseId}/status`, rest)
       .then(unwrap),
 
   applyLegalHold: async ({
-    matterId,
+    caseId,
     ...rest
   }: {
-    matterId: string;
+    caseId: string;
     reason: string;
     holdInstruction: string;
   }) =>
     await apiClient
-      .put<ApiResponse<Matter>>(`/matters/${matterId}/legal-hold`, rest)
+      .put<ApiResponse<Case>>(`/cases/${caseId}/legal-hold`, rest)
       .then(unwrap),
 
-  removeLegalHold: async (matterId: string) =>
+  removeLegalHold: async (caseId: string) =>
     await apiClient
-      .delete<ApiResponse<Matter>>(`/matters/${matterId}/legal-hold`)
+      .delete<ApiResponse<Case>>(`/cases/${caseId}/legal-hold`)
+      .then(unwrap),
+
+  createDeadline: async ({
+    caseId,
+    ...rest
+  }: {
+    caseId: string;
+    title: string;
+    description?: string;
+    dueDate: string;
+  }) =>
+    await apiClient
+      .post<
+        ApiResponse<{ message: string }>
+      >(`/cases/${caseId}/deadlines`, rest)
       .then(unwrap),
 };
 

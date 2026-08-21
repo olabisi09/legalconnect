@@ -3,18 +3,17 @@
 import { AppButton } from "@/components/app-button";
 import { DataTable } from "@/components/data-table";
 import { Input } from "@/components/ui/input";
-import { useMatters } from "@/hooks/features/use-matters";
-import { RiAddLine, RiCloseLine, RiMoreLine } from "@remixicon/react";
-import { CreateMatter } from "./_components/create-matter";
+import { useCases } from "@/hooks/features/use-cases";
+import { RiAddLine, RiCloseLine } from "@remixicon/react";
+import { CreateCase } from "./_components/create-case";
 import { useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Matter } from "@/types/matter";
+import { Case } from "@/types/case";
 import { formatDateString, formatTimeString } from "@/lib/formatter";
 import { TableColumnDef } from "@/components/data-table-features";
 import { Badge } from "@/components/ui/badge";
 import { capitalize } from "@/lib/utils";
-import { MatterDetailDrawer } from "./_components/matter-details";
-import { MATTER_STATUSES, PRIORITY_LEVELS } from "@/lib/enums";
+import { CASE_STATUSES, PRIORITY_LEVELS } from "@/lib/enums";
 import {
   Select,
   SelectContent,
@@ -23,8 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthStore } from "@/store/auth-store";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 
 const badgeMap: Record<string, string> = {
@@ -42,7 +39,7 @@ type ActiveFilter = {
   clear: () => void;
 };
 
-export default function MattersPage() {
+export default function Cases() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [pageNumber, setPageNumber] = useState(0);
@@ -56,7 +53,7 @@ export default function MattersPage() {
   const debouncedSearch = useDebounce(search);
   const debouncedPracticeArea = useDebounce(practiceArea);
 
-  const matterParams = {
+  const caseParams = {
     search: debouncedSearch,
     practiceArea: debouncedPracticeArea,
     status,
@@ -65,17 +62,15 @@ export default function MattersPage() {
     size: pageSize,
   };
 
-  const { data, isLoading } = useMatters(matterParams);
+  const { data, isLoading } = useCases(caseParams);
   const [open, setOpen] = useState(false);
-  const [openDetail, setOpenDetail] = useState(false);
-  const [selectedMatterId, setSelectedMatterId] = useState<string>("");
 
-  const matters = data?.data ?? [];
+  const cases = data?.data ?? [];
 
-  const canCreateMatter = user?.role !== "CLIENT" && user?.role !== "FINANCE";
+  const canCreateCase = user?.role !== "CLIENT" && user?.role !== "FINANCE";
 
-  const columns: Array<TableColumnDef<Matter>> = [
-    { accessorKey: "matterNumber", header: "Matter Number" },
+  const columns: Array<TableColumnDef<Case>> = [
+    { accessorKey: "caseNumber", header: "Case Number" },
     { accessorKey: "title", header: "Title" },
     {
       accessorKey: "status",
@@ -133,19 +128,19 @@ export default function MattersPage() {
   return (
     <div>
       <p className="font-plexmono text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
-        Matter Management
+        Case Management
       </p>
       <h1 className="mt-2 font-newsreader text-[28px] font-medium text-foreground">
-        Matters
+        Cases
       </h1>
       <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
-        View and manage all matters within the application, including their
+        View and manage all cases within the application, including their
         status, practice area, and priority.
       </p>
       <div className="mt-8 grid gap-4">
         <section className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Search matters"
+            placeholder="Search cases"
             className="w-40"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -159,7 +154,7 @@ export default function MattersPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              {[...MATTER_STATUSES].map((s) => (
+              {[...CASE_STATUSES].map((s) => (
                 <SelectItem key={s} value={s}>
                   {capitalize(s)}
                 </SelectItem>
@@ -191,10 +186,10 @@ export default function MattersPage() {
           />
 
           <div className="ml-auto flex gap-2">
-            {canCreateMatter && (
+            {canCreateCase && (
               <AppButton onClick={() => setOpen(true)}>
                 <RiAddLine />
-                Create Matter
+                Create Case
               </AppButton>
             )}
           </div>
@@ -230,11 +225,11 @@ export default function MattersPage() {
         )}
 
         <DataTable
-          data={matters}
+          data={cases}
           columns={columns}
           loading={isLoading}
           onRowClick={(row) => {
-            router.push(`/matters/${row.id}`);
+            router.push(`/cases/${row.id}`);
           }}
           pagination={{
             pageNumber,
@@ -244,12 +239,7 @@ export default function MattersPage() {
             totalItems: data?.pagination?.total ?? 0,
           }}
         />
-        <CreateMatter open={open} onOpenChange={setOpen} />
-        <MatterDetailDrawer
-          open={openDetail}
-          onOpenChange={setOpenDetail}
-          matterId={selectedMatterId}
-        />
+        <CreateCase open={open} onOpenChange={setOpen} />
       </div>
     </div>
   );

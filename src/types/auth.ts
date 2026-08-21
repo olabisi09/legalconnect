@@ -1,3 +1,5 @@
+import { Permission } from "@/lib/permissions";
+
 export interface RegisterPayload {
   email: string;
   password: string;
@@ -28,7 +30,7 @@ export interface UserInfo {
   orgId: string | null;
   orgName: string | null;
   mfaRequired: boolean;
-  permissions: string[];
+  permissions: Permission[];
 }
 
 export interface RegisterResponse {
@@ -68,7 +70,7 @@ interface Organization {
   settings: any;
 }
 
-type OrgRole =
+export type OrgRole =
   | "SUPER_ADMIN"
   | "ADMIN"
   | "LAWYER"

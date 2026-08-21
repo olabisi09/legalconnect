@@ -4,14 +4,20 @@ import { Permission } from "@/lib/permissions";
 export function PermissionGuard({
   permissions,
   children,
+  areAllRequired = false,
+  fallback,
 }: {
-  permissions: Permission | Permission[];
+  permissions: Permission[];
   children: React.ReactNode;
+  areAllRequired?: boolean;
+  fallback?: React.ReactNode;
 }) {
-  const hasAccess = usePermission(permissions);
+  const { hasAny, hasAll } = usePermission();
+
+  const hasAccess = areAllRequired ? hasAll(permissions) : hasAny(permissions);
 
   if (!hasAccess) {
-    return null;
+    return <>{fallback || null}</>;
   }
 
   return <>{children}</>;

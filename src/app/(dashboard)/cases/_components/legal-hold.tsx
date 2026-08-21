@@ -15,13 +15,12 @@ import {
   DialogClose,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { FormInput } from "@/components/forms/form-input";
 import { FormTextarea } from "@/components/forms/form-textarea";
 import { AppButton } from "@/components/app-button";
 import {
   useApplyLegalHold,
   useRemoveLegalHold,
-} from "@/hooks/features/use-matters";
+} from "@/hooks/features/use-cases";
 
 // --- Apply Legal Hold Modal ---
 
@@ -39,11 +38,11 @@ const applySchema = z.object({
 type ApplyLegalHoldValues = z.infer<typeof applySchema>;
 
 export function ApplyLegalHoldModal({
-  matterId,
+  caseId,
   open,
   onOpenChange,
 }: {
-  matterId: string;
+  caseId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -56,7 +55,7 @@ export function ApplyLegalHoldModal({
 
   const onSubmit = async (values: ApplyLegalHoldValues) => {
     await applyLegalHold.mutateAsync(
-      { matterId, ...values },
+      { caseId, ...values },
       {
         onSuccess: () => {
           form.reset();
@@ -77,7 +76,7 @@ export function ApplyLegalHoldModal({
             <div>
               <DialogTitle>Apply Legal Hold</DialogTitle>
               <DialogDescription className="text-xs">
-                Preserves all matter data from deletion or modification.
+                Preserves all case data from deletion or modification.
               </DialogDescription>
             </div>
           </div>
@@ -88,7 +87,7 @@ export function ApplyLegalHoldModal({
             <FormTextarea
               name="reason"
               label="Reason for legal hold"
-              placeholder="Explain why a legal hold is being applied to this matter..."
+              placeholder="Explain why a legal hold is being applied to this case..."
               rows={3}
               disabled={applyLegalHold.isPending}
             />
@@ -128,18 +127,18 @@ export function ApplyLegalHoldModal({
 // --- Remove Legal Hold Confirmation Dialog ---
 
 export function RemoveLegalHoldModal({
-  matterId,
+  caseId,
   open,
   onOpenChange,
 }: {
-  matterId: string;
+  caseId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const removeLegalHold = useRemoveLegalHold();
 
   const handleConfirm = async () => {
-    await removeLegalHold.mutateAsync(matterId, {
+    await removeLegalHold.mutateAsync(caseId, {
       onSuccess: () => onOpenChange(false),
     });
   };
@@ -155,8 +154,8 @@ export function RemoveLegalHoldModal({
             <DialogTitle>Remove Legal Hold</DialogTitle>
           </div>
           <DialogDescription className="pt-2">
-            Are you sure you want to remove the legal hold from this matter?
-            This will allow normal modifications and data operations to resume.
+            Are you sure you want to remove the legal hold from this case? This
+            will allow normal modifications and data operations to resume.
           </DialogDescription>
         </DialogHeader>
 

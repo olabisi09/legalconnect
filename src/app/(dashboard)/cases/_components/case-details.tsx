@@ -9,10 +9,10 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useMatterDetails } from "@/hooks/features/use-matters";
+import { useCaseDetails } from "@/hooks/features/use-cases";
 import { formatDate, formatDateTimeString } from "@/lib/formatter";
 import { capitalize } from "@/lib/utils";
-import { MatterDetail, Party } from "@/types/matter";
+import { CaseDetail, Party } from "@/types/case";
 import { Separator } from "@/components/ui/separator";
 import {
   RiBriefcaseLine,
@@ -69,24 +69,24 @@ function partyDisplayName(party: Party) {
   return party.entityName || "—";
 }
 
-export function MatterDetailDrawer({
-  matterId,
+export function CaseDetailDrawer({
+  caseId,
   open,
   onOpenChange,
 }: {
-  matterId: string;
+  caseId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const now = new Date();
-  const { data, isLoading } = useMatterDetails(matterId);
+  const { data, isLoading } = useCaseDetails(caseId);
 
-  const matter = data as MatterDetail;
+  const caseDetail = data as CaseDetail;
 
   if (isLoading)
     return <div className="p-6 text-sm text-muted-foreground">Loading...</div>;
 
-  const isOpenMatter = !matter?.closedAt;
+  const isOpenCase = !caseDetail?.closedAt;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} swipeDirection="right">
@@ -95,36 +95,36 @@ export function MatterDetailDrawer({
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <p className="text-muted-foreground font-mono text-xs">
-                {matter?.matterNumber}
+                {caseDetail?.caseNumber}
               </p>
               <DrawerTitle className="text-lg leading-tight">
-                {matter?.title}
+                {caseDetail?.title}
               </DrawerTitle>
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-              <StatusBadge status={matter?.status} />
-              <PriorityBadge priority={matter?.priority} />
+              <StatusBadge status={caseDetail?.status} />
+              <PriorityBadge priority={caseDetail?.priority} />
             </div>
           </div>
-          {matter?.legalHold && (
+          {caseDetail?.legalHold && (
             <div className="mt-2 flex items-center gap-1.5 text-sm text-red-700">
               <RiShieldCheckLine className="size-4" />
               Legal hold active
             </div>
           )}
           <DrawerDescription className="sr-only">
-            Matter details, parties, team, deadlines, and timeline
+            Case details, parties, team, deadlines, and timeline
           </DrawerDescription>
         </DrawerHeader>
 
-        {matter?.message && (
+        {/* {caseDetail?.message && (
           <div className="bg-amber-50 px-6 py-2.5 text-sm text-amber-900">
             <div className="flex items-start gap-2">
               <RiErrorWarningLine className="mt-0.5 size-4 shrink-0" />
-              <span>{matter?.message}</span>
+              <span>{caseDetail?.message}</span>
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="transparent-scrollbar flex-1 overflow-auto px-6 py-4">
           <style>{`
@@ -140,29 +140,31 @@ export function MatterDetailDrawer({
               <RiBriefcaseLine className="size-4" />
               Practice area
             </div>
-            <div className="text-right">{matter?.practiceArea || "—"}</div>
+            <div className="text-right">{caseDetail?.practiceArea || "—"}</div>
 
             <div className="flex items-center gap-2 text-muted-foreground">
               <RiMapPinLine className="size-4" />
               Jurisdiction
             </div>
-            <div className="text-right">{matter?.jurisdictionCode || "—"}</div>
+            <div className="text-right">
+              {caseDetail?.jurisdictionCode || "—"}
+            </div>
 
             <div className="flex items-center gap-2 text-muted-foreground">
               <RiCalendarLine className="size-4" />
               Opened
             </div>
-            <div className="text-right">{formatDate(matter?.openedAt)}</div>
+            <div className="text-right">{formatDate(caseDetail?.openedAt)}</div>
 
             <div className="flex items-center gap-2 text-muted-foreground">
               <RiCalendarCheckLine className="size-4" />
               Closed
             </div>
             <div className="text-right">
-              {isOpenMatter ? (
+              {isOpenCase ? (
                 <span className="text-green-700">Ongoing</span>
               ) : (
-                formatDate(matter?.closedAt)
+                formatDate(caseDetail?.closedAt)
               )}
             </div>
 
@@ -170,13 +172,15 @@ export function MatterDetailDrawer({
               <RiShieldLine className="size-4" />
               Access level
             </div>
-            <div className="text-right">{matter?.accessLevel || "—"}</div>
+            {/* <div className="text-right">{caseDetail?.accessLevel || "—"}</div> */}
           </div>
 
-          {matter?.description && (
+          {caseDetail?.description && (
             <>
               <Separator className="my-4" />
-              <p className="text-sm leading-relaxed">{matter?.description}</p>
+              <p className="text-sm leading-relaxed">
+                {caseDetail?.description}
+              </p>
             </>
           )}
 
@@ -186,13 +190,13 @@ export function MatterDetailDrawer({
           <Tabs defaultValue="parties">
             <TabsList className="w-full">
               <TabsTrigger value="parties" className="flex-1">
-                Parties ({matter?.partyCount})
+                Parties ({caseDetail?.partyCount})
               </TabsTrigger>
               <TabsTrigger value="team" className="flex-1">
-                Team ({matter?.teamCount})
+                Team ({caseDetail?.teamCount})
               </TabsTrigger>
               <TabsTrigger value="deadlines" className="flex-1">
-                Deadlines ({matter?.deadlines?.length || 0})
+                Deadlines ({caseDetail?.deadlines?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="timeline" className="flex-1">
                 Timeline
@@ -201,10 +205,10 @@ export function MatterDetailDrawer({
 
             {/* Parties */}
             <TabsContent value="parties" className="mt-4 space-y-3">
-              {matter?.parties?.length === 0 ? (
-                <EmptyState label="No parties on this matter" />
+              {caseDetail?.parties?.length === 0 ? (
+                <EmptyState label="No parties on this case" />
               ) : (
-                matter?.parties?.map((party) => (
+                caseDetail?.parties?.map((party) => (
                   <div
                     key={party.id}
                     className="flex items-start gap-3 rounded-md border p-3"
@@ -253,10 +257,10 @@ export function MatterDetailDrawer({
 
             {/* Team */}
             <TabsContent value="team" className="mt-4 space-y-3">
-              {matter?.team?.length === 0 ? (
+              {caseDetail?.team?.length === 0 ? (
                 <EmptyState label="No team members assigned" />
               ) : (
-                matter?.team?.map((member) => (
+                caseDetail?.team?.map((member) => (
                   <div
                     key={member.id}
                     className="flex items-start justify-between gap-3 rounded-md border p-3"
@@ -266,7 +270,7 @@ export function MatterDetailDrawer({
                         <RiUserLine className="size-4" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium">{member.userName}</p>
+                        {/* <p className="text-sm font-medium">{member.userName}</p> */}
                         <p className="text-muted-foreground text-xs">
                           {member.teamRole}
                         </p>
@@ -293,10 +297,10 @@ export function MatterDetailDrawer({
 
             {/* Deadlines */}
             <TabsContent value="deadlines" className="mt-4 space-y-3">
-              {matter?.deadlines?.length === 0 ? (
-                <EmptyState label="No deadlines on this matter" />
+              {caseDetail?.deadlines?.length === 0 ? (
+                <EmptyState label="No deadlines on this case" />
               ) : (
-                matter?.deadlines?.map((deadline) => {
+                caseDetail?.deadlines?.map((deadline) => {
                   const isOverdue =
                     !deadline.completed &&
                     new Date(deadline.dueDate).getTime() < now.getTime();
@@ -342,12 +346,12 @@ export function MatterDetailDrawer({
             </TabsContent>
 
             {/* Timeline */}
-            <TabsContent value="timeline" className="mt-4">
-              {matter?.timeline?.length === 0 ? (
+            {/* <TabsContent value="timeline" className="mt-4">
+              {caseDetail?.timeline?.length === 0 ? (
                 <EmptyState label="No activity recorded yet" />
               ) : (
                 <ol className="relative space-y-6 border-l pl-5">
-                  {matter?.timeline?.map((event) => (
+                  {caseDetail?.timeline?.map((event) => (
                     <li key={event.id} className="relative">
                       <span className="bg-background absolute -left-[27px] flex size-4 items-center justify-center rounded-full border">
                         <RiHistoryLine className="size-2.5" />
@@ -373,7 +377,7 @@ export function MatterDetailDrawer({
                   ))}
                 </ol>
               )}
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
         </div>
       </DrawerContent>
