@@ -1,7 +1,12 @@
 import { ApiResponse, PagedResponse } from "@/types/shared";
 import type { AuditLogParams } from "@/types/admin";
 import { apiClient, unwrap } from "./api-client";
-import { AuthResponse, RegisterPayload, RegisterResponse } from "@/types/auth";
+import {
+  AuthResponse,
+  OrgRole,
+  RegisterPayload,
+  RegisterResponse,
+} from "@/types/auth";
 import {
   LawyerProfileResponse,
   UpdateLawyerProfileRequest,
@@ -23,6 +28,12 @@ import {
 } from "@/types/organization";
 import { Notification } from "@/types/notification";
 import { Event } from "@/types/event";
+import {
+  AcceptInvitationPayload,
+  InvitePayload,
+  TeamMember,
+  TeamMemberParams,
+} from "@/types/user";
 
 export const authAPI = {
   login: async (payload: {
@@ -187,6 +198,39 @@ export const orgAPI = {
   getOrgDetails: async (orgId: string) =>
     await apiClient
       .get<ApiResponse<OrganizationDetail>>(`/organizations/${orgId}`)
+      .then(unwrap),
+};
+
+export const teamAPI = {
+  getMembers: async (params?: TeamMemberParams) =>
+    await apiClient
+      .get<ApiResponse<TeamMember[]>>("/admin/users", {
+        params,
+      })
+      .then(unwrap),
+  inviteUser: async (payload: InvitePayload) =>
+    await apiClient
+      .post<ApiResponse<any>>("/admin/users/invite", payload)
+      .then(unwrap),
+  updateUserRole: async ({ id, ...rest }: { id: string; role: OrgRole }) =>
+    await apiClient
+      .put<ApiResponse<any>>(`/admin/users/${id}/role`, rest)
+      .then(unwrap),
+  activateUser: async (id: string) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/admin/users/${id}/activate`)
+      .then(unwrap),
+  deactivateUser: async (id: string) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/admin/users/${id}/deactivate`)
+      .then(unwrap),
+  forceLogoutUser: async (id: string) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/admin/users/${id}/force-logout`)
+      .then(unwrap),
+  acceptInvite: async (payload: AcceptInvitationPayload) =>
+    await apiClient
+      .post<ApiResponse<AuthResponse>>("/auth/invitations/accept", payload)
       .then(unwrap),
 };
 
