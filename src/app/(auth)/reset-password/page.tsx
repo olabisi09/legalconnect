@@ -9,7 +9,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppButton } from "@/components/app-button";
 import { AuthForm } from "@/components/auth-form";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { RiCheckboxCircleLine, RiErrorWarningLine } from "@remixicon/react";
 
 const resetPasswordSchema = z
@@ -25,6 +25,14 @@ const resetPasswordSchema = z
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}
+
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");

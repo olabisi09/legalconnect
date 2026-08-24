@@ -1,14 +1,7 @@
 "use client";
 
 import { AppButton } from "@/components/app-button";
-import { DashboardCard } from "@/components/dashboard-card";
 import { DataTable } from "@/components/data-table";
-import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { useAuditLogs } from "@/hooks/features/use-audit-logs";
 import { RiExportLine } from "@remixicon/react";
 
@@ -36,19 +29,6 @@ export default function AuditLogsPage() {
     },
   ];
   return (
-    // <DashboardCard>
-    //   <CardHeader className="border-b">
-    //     <CardTitle className="text-sm">Audit Logs</CardTitle>
-    //     <CardDescription>
-    //       View a log of all actions performed within the application, including
-    //       user activities and system events.
-    //     </CardDescription>
-    //   </CardHeader>
-
-    //   <CardContent>
-    //     <DataTable data={logs} columns={columns} loading={isLoading} />
-    //   </CardContent>
-    // </DashboardCard>
     <div>
       <p className="font-plexmono text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
         09 — Compliance

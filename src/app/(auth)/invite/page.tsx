@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
@@ -23,6 +23,14 @@ const acceptSchema = z.object({
 type AcceptValues = z.infer<typeof acceptSchema>;
 
 export default function AcceptInvitationPage() {
+  return (
+    <Suspense fallback={null}>
+      <AcceptInvitationForm />
+    </Suspense>
+  );
+}
+
+function AcceptInvitationForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setAuthState } = useAuthStore();

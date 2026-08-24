@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FormProvider, useForm, Controller } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import { RiUserAddLine } from "@remixicon/react";
@@ -18,15 +18,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { useInviteUser } from "@/hooks/features/use-team";
 import { OrgRole } from "@/types/auth";
+import { FormSelect } from "@/components/forms/form-select";
 
 const ROLES: { value: OrgRole; label: string }[] = [
   { value: "ADMIN", label: "Admin" },
@@ -56,7 +51,7 @@ export function InviteMemberDialog() {
     defaultValues: { email: "", firstName: "", lastName: "", role: undefined },
     resolver: zodResolver(inviteSchema),
   });
-  const { handleSubmit, control, reset } = form;
+  const { handleSubmit, reset } = form;
 
   const onSubmit = async (values: InviteValues) => {
     setServerError(null);
@@ -139,36 +134,7 @@ export function InviteMemberDialog() {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                Role
-              </label>
-              <Controller
-                name="role"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((r) => (
-                          <SelectItem key={r.value} value={r.value}>
-                            {r.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {fieldState.error ? (
-                      <p className="text-sm text-lc-stamp">
-                        {fieldState.error.message}
-                      </p>
-                    ) : null}
-                  </>
-                )}
-              />
-            </div>
+            <FormSelect name="role" label="Role" options={ROLES} />
 
             {serverError ? (
               <p className="text-sm text-lc-stamp">{serverError}</p>
