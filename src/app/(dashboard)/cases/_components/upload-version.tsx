@@ -18,12 +18,10 @@ import { useUploadDocument } from "@/hooks/features/use-documents";
 import { formatBytes } from "@/lib/formatter";
 
 export function UploadVersionDialog({
-  caseId,
   documentId,
   open,
   onOpenChange,
 }: {
-  caseId: string;
   documentId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,7 +47,6 @@ export function UploadVersionDialog({
     setError(null);
     try {
       await uploadFile.mutateAsync({
-        caseId,
         id: documentId,
         file,
         changeDescription,

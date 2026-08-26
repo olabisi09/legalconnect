@@ -425,7 +425,6 @@ export function DocumentDrawer({
 
       {doc ? (
         <UploadVersionDialog
-          caseId={caseId}
           documentId={doc.id}
           open={uploadVersionOpen}
           onOpenChange={setUploadVersionOpen}
