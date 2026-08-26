@@ -76,6 +76,7 @@ const firmNav = [
     title: "Audit Log",
     href: "/audit-logs",
     icon: RiScrollToBottomLine,
+    permission: P.REPORTING_READ,
   },
   {
     title: "Organizations",

@@ -48,6 +48,10 @@ import { DataTable } from "@/components/data-table";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { features } from "@/components/data-table-features";
+import { CaseDocument } from "@/types/document";
+import { useDocuments } from "@/hooks/features/use-documents";
+import { UploadDocumentModal } from "../_components/upload-document";
+import { DocumentDrawer } from "../_components/document-details";
 
 // Column definitions
 const partyColumns: ColumnDef<typeof features, Party>[] = [
@@ -273,9 +277,69 @@ const transitionColumns: ColumnDef<typeof features, Transition>[] = [
   },
 ];
 
+const documentColumns: ColumnDef<typeof features, CaseDocument>[] = [
+  {
+    accessorKey: "fileName",
+    header: "Name",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">
+        {row.original.fileName || "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "fileType",
+    header: "Type",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">
+        {row.original.fileType || "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">
+        {row.original.description || "—"}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge
+        className={cn(
+          "text-xs",
+          row.original.status === "ACTIVE"
+            ? "bg-green-100 text-green-700"
+            : row.original.status === "ARCHIVED"
+              ? "bg-gray-100 text-gray-700"
+              : "bg-muted text-muted-foreground",
+        )}
+      >
+        {row.original.status}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "uploadedAt",
+    header: "Uploaded",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">
+        {formatDateTimeString(row.original.createdAt) || "—"}
+      </span>
+    ),
+  },
+];
+
 export default function CaseDetails() {
   const params = useParams<{ id: string }>();
   const { data, isLoading } = useCaseDetails(params?.id);
+  const { data: documentsData, isLoading: isDocumentsLoading } = useDocuments(
+    params?.id,
+  );
   const caseDetail = data as CaseDetail;
 
   // Modal state management
@@ -284,6 +348,9 @@ export default function CaseDetails() {
   const [applyHoldOpen, setApplyHoldOpen] = useState(false);
   const [removeHoldOpen, setRemoveHoldOpen] = useState(false);
   const [addDeadlineOpen, setAddDeadlineOpen] = useState(false);
+  const [currentDocId, setCurrentDocId] = useState("");
+  const [documentDetailOpen, setDocumentDetailOpen] = useState(false);
+  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -293,6 +360,7 @@ export default function CaseDetails() {
     );
   }
 
+  const documents = documentsData?.content || [];
   const isOpenCase = !caseDetail?.closedAt;
   const canWriteCase = true;
 
@@ -429,6 +497,9 @@ export default function CaseDetails() {
             <TabsTrigger value="transitions">
               Transitions ({caseDetail?.transitions?.length ?? 0})
             </TabsTrigger>
+            <TabsTrigger value="documents">
+              Documents ({documents?.length ?? 0})
+            </TabsTrigger>
           </TabsList>
 
           {/* Parties */}
@@ -494,6 +565,31 @@ export default function CaseDetails() {
               emptyText="No status transitions recorded."
             />
           </TabsContent>
+
+          {/* Documents */}
+          <TabsContent value="documents" className="mt-4">
+            <DataTable
+              columns={documentColumns}
+              data={documents}
+              emptyComponent={
+                <AppEmpty
+                  title="No documents"
+                  description="No documents uploaded for this case"
+                >
+                  <Button onClick={() => setUploadDocumentOpen(true)}>
+                    <RiAddLine />
+                    Add document
+                  </Button>
+                </AppEmpty>
+              }
+              loading={isDocumentsLoading}
+              isRowClickable
+              onRowClick={(row) => {
+                setCurrentDocId(row.id);
+                setDocumentDetailOpen(true);
+              }}
+            />
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -523,6 +619,17 @@ export default function CaseDetails() {
         caseId={caseDetail?.id}
         open={addDeadlineOpen}
         onOpenChange={setAddDeadlineOpen}
+      />
+      <UploadDocumentModal
+        caseId={caseDetail?.id}
+        open={uploadDocumentOpen}
+        setOpen={setUploadDocumentOpen}
+      />
+      <DocumentDrawer
+        caseId={caseDetail?.id}
+        documentId={currentDocId}
+        open={documentDetailOpen}
+        onOpenChange={setDocumentDetailOpen}
       />
     </div>
   );

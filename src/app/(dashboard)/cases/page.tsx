@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
+import { usePermission } from "@/hooks/use-permission";
 
 const badgeMap: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-700",
@@ -42,6 +43,7 @@ type ActiveFilter = {
 export default function Cases() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const { has } = usePermission();
   const [pageNumber, setPageNumber] = useState(0);
   const [pageSize, setPageSize] = useState(20);
 
@@ -68,6 +70,7 @@ export default function Cases() {
   const cases = data?.data ?? [];
 
   const canCreateCase = user?.role !== "CLIENT" && user?.role !== "FINANCE";
+  const canViewCase = has("CASE:LINK");
 
   const columns: Array<TableColumnDef<Case>> = [
     { accessorKey: "caseNumber", header: "Case Number" },
@@ -95,10 +98,6 @@ export default function Cases() {
         </p>
       ),
     },
-    // {
-    //   header: "Actions",
-    //   cell: (row) => <DropdownMenu></DropdownMenu>,
-    // },
   ];
 
   const activeFilters: ActiveFilter[] = [
@@ -228,6 +227,7 @@ export default function Cases() {
           data={cases}
           columns={columns}
           loading={isLoading}
+          isRowClickable={canViewCase}
           onRowClick={(row) => {
             router.push(`/cases/${row.id}`);
           }}

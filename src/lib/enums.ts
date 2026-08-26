@@ -107,3 +107,16 @@ export const STAGE_TYPES = [
   "ACTION",
   "RECORD",
 ] as const;
+
+export const DOCUMENT_TYPES = [
+  "CREATED",
+  "UPLOADED",
+  "DRAFT",
+  "REVIEW",
+  "APPROVED",
+  "REJECTED",
+  "PUBLISHED",
+  "SUPERSEDED",
+  "ARCHIVED",
+  "DESTROYED",
+] as const;

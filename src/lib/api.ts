@@ -1,4 +1,8 @@
-import { ApiResponse, PagedResponse } from "@/types/shared";
+import {
+  AdvancedPageResponse,
+  ApiResponse,
+  PagedResponse,
+} from "@/types/shared";
 import type { AuditLogParams } from "@/types/admin";
 import { apiClient, unwrap } from "./api-client";
 import {
@@ -34,6 +38,19 @@ import {
   TeamMember,
   TeamMemberParams,
 } from "@/types/user";
+import {
+  CaseDocument,
+  DocumentDetail,
+  DocumentStatus,
+  RegisterDocumentPayload,
+  ShareDocumentPayload,
+  TransitionPayload,
+  UploadFilePayload,
+} from "@/types/document";
+import {
+  downloadDocumentFile,
+  getFileNameFromContentDispositionHeader,
+} from "./download";
 
 export const authAPI = {
   login: async (payload: {
@@ -188,6 +205,74 @@ export const caseAPI = {
       .then(unwrap),
 };
 
+export const documentAPI = {
+  getDocuments: async (caseId: string) =>
+    await apiClient
+      .get<
+        ApiResponse<AdvancedPageResponse<CaseDocument>>
+      >(`/cases/${caseId}/documents`)
+      .then(unwrap),
+
+  getDocumentDetails: async (docId: string) =>
+    await apiClient
+      .get<ApiResponse<DocumentDetail>>(`/documents/${docId}/detail`)
+      .then(unwrap),
+  downloadDocument: async (documentId: string) =>
+    await apiClient
+      .get<Blob>(`/documents/${documentId}/download`, {
+        responseType: "blob",
+      })
+      .then(async (res) => {
+        const contentDispositionHeader = res.headers["content-disposition"];
+        const fileName = getFileNameFromContentDispositionHeader(
+          contentDispositionHeader,
+        );
+        await downloadDocumentFile(res.data, fileName);
+      }),
+  registerDocument: async ({
+    caseId,
+    ...rest
+  }: { caseId: string } & RegisterDocumentPayload) =>
+    await apiClient
+      .post<ApiResponse<CaseDocument>>(`/cases/${caseId}/documents`, rest)
+      .then(unwrap),
+  uploadDocument: async ({ id, ...rest }: UploadFilePayload) =>
+    await apiClient
+      .post<ApiResponse<CaseDocument>>(`/documents/${id}/upload-file`, rest, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then(unwrap),
+  createTransition: async ({
+    docId,
+    ...rest
+  }: {
+    docId: string;
+    newStatus: DocumentStatus;
+    reason?: string;
+  }) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/documents/${docId}/transitions`, rest)
+      .then(unwrap),
+  checkInDocument: async (docId: string) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/documents/${docId}/check-in`)
+      .then(unwrap),
+  checkOutDocument: async (docId: string) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/documents/${docId}/check-out`)
+      .then(unwrap),
+  share: async ({ id, ...payload }: ShareDocumentPayload) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/documents/${id}/shares`, payload)
+      .then(unwrap),
+  transition: async ({ id, ...payload }: TransitionPayload) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/documents/${id}/transitions`, payload)
+      .then(unwrap),
+};
+
 export const orgAPI = {
   getOrgs: async (params?: OrganizationParams) =>
     await apiClient
@@ -230,7 +315,7 @@ export const teamAPI = {
       .then(unwrap),
   acceptInvite: async (payload: AcceptInvitationPayload) =>
     await apiClient
-      .post<ApiResponse<AuthResponse>>("/auth/invitations/accept", payload)
+      .post<ApiResponse<AuthResponse>>("/auth/invitation/accept", payload)
       .then(unwrap),
 };
 

@@ -19,7 +19,9 @@ interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<typeof features, TData>[];
   data: TData[];
   emptyText?: string;
+  emptyComponent?: React.ReactNode;
   loading?: boolean;
+  isRowClickable?: boolean;
   onRowClick?: (row: TData) => void;
   pagination?: {
     /** 1-based page number */
@@ -35,7 +37,9 @@ export function DataTable<TData extends RowData>({
   columns,
   data,
   emptyText = "No results.",
+  emptyComponent,
   loading = false,
+  isRowClickable = false,
   onRowClick,
   pagination,
 }: DataTableProps<TData>) {
@@ -84,8 +88,8 @@ export function DataTable<TData extends RowData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => onRowClick?.(row.original)}
-                  className={onRowClick ? "cursor-pointer" : ""}
+                  onClick={() => isRowClickable && onRowClick?.(row.original)}
+                  className={isRowClickable ? "cursor-pointer" : ""}
                   data-page-number={pagination?.pageNumber}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -101,7 +105,7 @@ export function DataTable<TData extends RowData>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {emptyText}
+                  {emptyComponent ?? emptyText}
                 </TableCell>
               </TableRow>
             )}
