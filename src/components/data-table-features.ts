@@ -1,6 +1,7 @@
 import {
   columnFilteringFeature,
   columnVisibilityFeature,
+  createExpandedRowModel,
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
@@ -8,6 +9,7 @@ import {
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
+  rowExpandingFeature,
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
@@ -23,9 +25,11 @@ export const features = tableFeatures({
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
+  rowExpandingFeature,
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
+  expandedRowModel: createExpandedRowModel(),
   filterFns: { includesString: filterFn_includesString },
   sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
 });

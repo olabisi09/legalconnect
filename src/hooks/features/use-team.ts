@@ -68,3 +68,13 @@ export const useForceLogoutUser = () => {
     },
   });
 };
+
+export const useChangeUserStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: teamAPI.changeUserStatus,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    },
+  });
+};

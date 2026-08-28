@@ -29,7 +29,7 @@ export function formatDate(
   });
 }
 
-// formatDateString function to format a date string in "2026-08-12T12:43:29.594372" format to "Aug 12, 2026"
+// formatDateString function to format a date string in "2026-08-12T12:43:29.594372" format to "Aug 12, 2026, 12:43 PM"
 export function formatDateString(dateString: string): string {
   if (!dateString) return "";
   const date = new Date(dateString);
@@ -37,6 +37,9 @@ export function formatDateString(dateString: string): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
   });
 }
 
@@ -59,8 +62,29 @@ export function formatDateTimeString(dateString: string): string {
     month: "short",
     year: "numeric",
     hour: "numeric",
-    minute: "numeric",
+    minute: "2-digit",
+    hour12: true,
   });
+}
+
+export function formatRelativeTime(dateString: string): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds} seconds ago`;
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  }
 }
 
 /** X-axis for range charts: weekday when showing ~a week, otherwise month + day. */

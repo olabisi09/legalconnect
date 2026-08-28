@@ -8,6 +8,7 @@ import {
   RiPlayCircleLine,
   RiLogoutBoxRLine,
   RiTeamLine,
+  RiUserSettingsLine,
 } from "@remixicon/react";
 
 import {
@@ -49,6 +50,7 @@ import {
   useForceLogoutUser,
   useTeamMembers,
 } from "@/hooks/features/use-team";
+import { ChangeStatusDialog } from "./change-status";
 
 type ConfirmAction = {
   type: "deactivate" | "activate" | "force-logout";
@@ -108,6 +110,8 @@ export function TeamSection() {
   const [roleDialogMember, setRoleDialogMember] = useState<TeamMember | null>(
     null,
   );
+  const [statusDialogMember, setStatusDialogMember] =
+    useState<TeamMember | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
     null,
   );
@@ -175,8 +179,8 @@ export function TeamSection() {
                   <TableRow key={member.id} className="border-border">
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 rounded-sm">
-                          <AvatarFallback className="rounded-sm bg-lc-paper-warm text-[11px] text-foreground">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-lc-paper-warm text-[11px] text-foreground">
                             {member.firstName.slice(0, 1)}
                             {member.lastName.slice(0, 1)}
                           </AvatarFallback>
@@ -219,7 +223,9 @@ export function TeamSection() {
                             <RiShieldUserLine className="mr-2 h-4 w-4" />
                             Change role
                           </DropdownMenuItem>
-                          {member.status.toUpperCase() === "DEACTIVATED" ? (
+                          {member.status.toUpperCase() === "DEACTIVATED" ||
+                          member.status.toUpperCase() ===
+                            "PENDING_VERIFICATION" ? (
                             <DropdownMenuItem
                               onClick={() =>
                                 setConfirmAction({ type: "activate", member })
@@ -238,6 +244,12 @@ export function TeamSection() {
                               Deactivate
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem
+                            onClick={() => setStatusDialogMember(member)}
+                          >
+                            <RiUserSettingsLine className="mr-2 h-4 w-4" />
+                            Change status
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             variant="destructive"
@@ -265,6 +277,16 @@ export function TeamSection() {
           open={Boolean(roleDialogMember)}
           onOpenChange={(open) => {
             if (!open) setRoleDialogMember(null);
+          }}
+        />
+      ) : null}
+
+      {statusDialogMember ? (
+        <ChangeStatusDialog
+          member={statusDialogMember}
+          open={Boolean(statusDialogMember)}
+          onOpenChange={(open) => {
+            if (!open) setStatusDialogMember(null);
           }}
         />
       ) : null}

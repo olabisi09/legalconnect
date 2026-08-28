@@ -14,6 +14,7 @@ import {
 import { features } from "./data-table-features";
 import { Skeleton } from "./ui/skeleton";
 import { AppPagination } from "./app-pagination";
+import { Fragment } from "react/jsx-runtime";
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<typeof features, TData>[];
@@ -31,6 +32,7 @@ interface DataTableProps<TData extends RowData> {
     onPageSizeChange: (pageSize: number) => void;
     totalItems: number;
   };
+  details?: (row: TData) => React.ReactNode;
 }
 
 export function DataTable<TData extends RowData>({
@@ -42,11 +44,13 @@ export function DataTable<TData extends RowData>({
   isRowClickable = false,
   onRowClick,
   pagination,
+  details,
 }: DataTableProps<TData>) {
   const table = useTable({
     features,
     data,
     columns,
+    getRowCanExpand: () => true,
   });
 
   const totalPages = pagination
@@ -55,8 +59,8 @@ export function DataTable<TData extends RowData>({
 
   return (
     <div>
-      <div className="overflow-hidden border">
-        <Table>
+      <div className="w-full min-w-0 overflow-x-auto border">
+        <Table className="min-w-max">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -85,19 +89,32 @@ export function DataTable<TData extends RowData>({
               ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => isRowClickable && onRowClick?.(row.original)}
-                  className={isRowClickable ? "cursor-pointer" : ""}
-                  data-page-number={pagination?.pageNumber}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      <table.FlexRender cell={cell} />
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <Fragment key={row.id}>
+                  <TableRow
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => {
+                      if (isRowClickable) onRowClick?.(row.original);
+                      if (details) row.getToggleExpandedHandler()();
+                    }}
+                    className={
+                      isRowClickable || details ? "cursor-pointer" : ""
+                    }
+                    data-page-number={pagination?.pageNumber}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        <table.FlexRender cell={cell} />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {row.getIsExpanded() && (
+                    <TableRow>
+                      <TableCell colSpan={row.getAllCells().length}>
+                        {row.getIsExpanded() && details?.(row.original)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
               ))
             ) : (
               <TableRow>

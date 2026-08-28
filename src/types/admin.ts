@@ -5,9 +5,16 @@ export interface AuditLog {
   action: string;
   resourceType: string;
   resourceId: string;
-  details: any;
+  details: AuditLogDetail | string;
   ipAddress: string;
   timestamp: string;
+}
+
+export interface AuditLogDetail {
+  eventId: string;
+  eventType: string;
+  occurredAt: string;
+  producer: string;
 }
 
 export type AuditLogParams = Partial<

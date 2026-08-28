@@ -37,6 +37,7 @@ import {
   InvitePayload,
   TeamMember,
   TeamMemberParams,
+  UserStatus,
 } from "@/types/user";
 import {
   CaseDocument,
@@ -271,6 +272,10 @@ export const documentAPI = {
     await apiClient
       .post<ApiResponse<any>>(`/documents/${id}/transitions`, payload)
       .then(unwrap),
+  delete: async (docId: string) =>
+    await apiClient
+      .delete<ApiResponse<any>>(`/documents/${docId}`)
+      .then(unwrap),
 };
 
 export const orgAPI = {
@@ -308,6 +313,16 @@ export const teamAPI = {
   deactivateUser: async (id: string) =>
     await apiClient
       .post<ApiResponse<any>>(`/admin/users/${id}/deactivate`)
+      .then(unwrap),
+  changeUserStatus: async ({
+    id,
+    status,
+  }: {
+    id: string;
+    status: UserStatus;
+  }) =>
+    await apiClient
+      .patch<ApiResponse<any>>(`/admin/users/${id}/status`, { status })
       .then(unwrap),
   forceLogoutUser: async (id: string) =>
     await apiClient

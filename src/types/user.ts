@@ -32,3 +32,12 @@ export interface AcceptInvitationPayload {
   firstName: string;
   lastName: string;
 }
+
+export type UserStatus =
+  | "PENDING"
+  | "PENDING_VERIFICATION"
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "LOCKED"
+  | "DEACTIVATED"
+  | "DELETED";

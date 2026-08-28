@@ -94,3 +94,13 @@ export const useDownloadDocument = () => {
     mutationFn: documentAPI.downloadDocument,
   });
 };
+
+export const useDeleteDocument = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: documentAPI.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DOCUMENTS_QUERY_KEY] });
+    },
+  });
+};
