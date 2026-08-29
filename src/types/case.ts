@@ -1,4 +1,5 @@
 import { CASE_STATUSES } from "@/lib/enums";
+import { SharedParams } from "./shared";
 
 export interface Case {
   id: string;
@@ -123,12 +124,89 @@ export interface CasePayload {
 
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
+export type CaseStage =
+  | "INTAKE"
+  | "PLEADING"
+  | "DISCOVERY"
+  | "MOTIONS"
+  | "PRE_TRIAL"
+  | "TRIAL"
+  | "POST_TRIAL"
+  | "DILIGENCE"
+  | "DRAFTING"
+  | "NEGOTIATION"
+  | "EXECUTION"
+  | "POST_CLOSING"
+  | "RESEARCH"
+  | "REVIEW"
+  | "DELIVERY"
+  | "INVESTIGATION"
+  | "ANALYSIS"
+  | "REPORTING"
+  | "REMEDIATION"
+  | "MONITORING"
+  | "INITIATION"
+  | "PANEL_SELECTION"
+  | "PRELIMINARY"
+  | "HEARING"
+  | "AWARD"
+  | "ACTION"
+  | "RECORD"
+  | "RESOLVED"
+  | "CLOSED"
+  | "REOPENED";
+
+export type CaseType =
+  | "LITIGATION"
+  | "TRANSACTION"
+  | "CORPORATE"
+  | "FAMILY"
+  | "PROBATE"
+  | "INTERNAL";
+
 export type CaseParams = Partial<
-  Pick<Case, "status" | "practiceArea" | "priority">
-> & {
-  search?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  page?: number;
-  size?: number;
-};
+  Pick<
+    Case,
+    | "status"
+    | "practiceArea"
+    | "priority"
+    | "stage"
+    | "caseType"
+    | "jurisdictionCode"
+    | "legalHold"
+  >
+> & { search?: string } & SharedParams;
+
+export interface CaseLink {
+  id: string;
+  orgId: string;
+  sourceCaseId: string;
+  targetCaseId: string;
+  linkType: string;
+  status: string;
+  notes: string;
+  removedAt: string;
+  removedReason: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CaseLinkPayload {
+  sourceCaseId: string;
+  targetCaseId: string;
+  linkType: string;
+  notes?: string;
+}
+
+// RELATED, CONSOLIDATED, DEPENDENT, APPEAL, CROSS_REFERENCE, PRECEDENT, PARENT, DUPLICATE
+export type CaseLinkType =
+  | "RELATED"
+  | "CONSOLIDATED"
+  | "DEPENDENT"
+  | "APPEAL"
+  | "CROSS_REFERENCE"
+  | "PRECEDENT"
+  | "PARENT"
+  | "DUPLICATE";
+
+export type CaseLinkParams = { caseId?: string; page?: number; size?: number };

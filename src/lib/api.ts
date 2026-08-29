@@ -21,6 +21,9 @@ import { AuditLog } from "@/types/admin";
 import {
   Case,
   CaseDetail,
+  CaseLink,
+  CaseLinkParams,
+  CaseLinkPayload,
   CaseParams,
   CasePayload,
   CaseStatus,
@@ -31,7 +34,7 @@ import {
   OrganizationParams,
 } from "@/types/organization";
 import { Notification } from "@/types/notification";
-import { Event } from "@/types/event";
+import { Event, EventPayload } from "@/types/event";
 import {
   AcceptInvitationPayload,
   InvitePayload,
@@ -204,6 +207,24 @@ export const caseAPI = {
         ApiResponse<{ message: string }>
       >(`/cases/${caseId}/deadlines`, rest)
       .then(unwrap),
+  getCaseLinks: async (params?: CaseLinkParams) =>
+    await apiClient
+      .get<ApiResponse<PagedResponse<CaseLink>>>("/case-links", { params })
+      .then(unwrap),
+  createCaseLink: async (payload: CaseLinkPayload) =>
+    await apiClient
+      .post<ApiResponse<CaseLink>>("/case-links", payload)
+      .then(unwrap),
+  removeCaseLink: async ({
+    linkId,
+    ...payload
+  }: {
+    linkId: string;
+    reason: string;
+  }) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/case-links/${linkId}/remove`, payload)
+      .then(unwrap),
 };
 
 export const documentAPI = {
@@ -340,6 +361,21 @@ export const eventsAPI = {
       .get<ApiResponse<Event[]>>("/calendar/events", {
         params,
       })
+      .then(unwrap),
+  createEvent: async (payload: EventPayload) =>
+    await apiClient
+      .post<ApiResponse<Event>>("/calendar/events", payload)
+      .then(unwrap),
+  updateEvent: async ({
+    eventId,
+    ...payload
+  }: { eventId: string } & Partial<EventPayload>) =>
+    await apiClient
+      .put<ApiResponse<Event>>(`/calendar/events/${eventId}`, payload)
+      .then(unwrap),
+  deleteEvent: async (eventId: string) =>
+    await apiClient
+      .delete<ApiResponse<{ message: string }>>(`/calendar/events/${eventId}`)
       .then(unwrap),
 };
 

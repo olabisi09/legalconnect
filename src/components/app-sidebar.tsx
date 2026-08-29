@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   RiFolderLine,
-  RiFileTextLine,
   RiGovernmentLine,
   RiReceiptLine,
   RiCalendarLine,
@@ -53,7 +52,7 @@ interface NavItem {
 const practiceNav = [
   { title: "Dashboard", href: "/dashboard", icon: RiHomeLine },
   { title: "Case Management", href: "/cases", icon: RiFolderLine },
-  { title: "Documents", href: "/documents", icon: RiFileTextLine },
+  // { title: "Documents", href: "/documents", icon: RiFileTextLine },
   { title: "Events", href: "/events", icon: RiCalendarLine },
   {
     title: "Conflict Check",
@@ -73,7 +72,7 @@ const financeNav = [
 
 const firmNav = [
   {
-    title: "Audit Log",
+    title: "Audit Logs",
     href: "/audit-logs",
     icon: RiScrollToBottomLine,
     permission: P.REPORTING_READ,

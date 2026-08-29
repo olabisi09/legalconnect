@@ -1,351 +1,158 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import {
-  EventCalendar,
-  type EventCalendarApi,
-} from "@/components/reui/event-calendar/event-calendar";
-import { EventCalendarContent } from "@/components/reui/event-calendar/event-calendar-content";
-import {
-  EventCalendarNav,
-  EventCalendarToolbar,
-} from "@/components/reui/event-calendar/event-calendar-nav";
-import type {
-  CalendarEvent,
-  EventCalendarOccurrence,
-  EventCalendarSlotInfo,
-} from "@/components/reui/event-calendar/event-calendar-types";
-import {
-  addDays,
-  addMinutes,
-  differenceInMinutes,
-  endOfMonth,
-  format,
-  setHours,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
-import { useEvents } from "@/hooks/features/use-events";
-import type { Event } from "@/types/event";
-
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { useMemo, useState } from "react";
+import { AppButton } from "@/components/app-button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { RiAddLine } from "@remixicon/react";
+import { useEvents } from "@/hooks/features/use-events";
+import { useDebounce } from "@/hooks/use-debounce";
+import { EVENT_TYPES } from "@/types/event";
+import type { Event } from "@/types/event";
+import { capitalize } from "@/lib/utils";
+import { Filters, type FilterField } from "@/components/filters";
+import { MonthCalendar } from "./_components/month-calendar";
+import { DayAgenda } from "./_components/day-agenda";
+import { EventFormDialog } from "./_components/event-form-dialog";
+import { toDateInputValue } from "./_components/date-grid";
 
-const COLORS = [
-  { value: "var(--color-blue-500)", label: "Blue" },
-  { value: "var(--color-violet-500)", label: "Violet" },
-  { value: "var(--color-emerald-500)", label: "Emerald" },
-  { value: "var(--color-amber-500)", label: "Amber" },
-  { value: "var(--color-rose-500)", label: "Rose" },
-];
+export default function CalendarPage() {
+  const [cursor, setCursor] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState(() =>
+    toDateInputValue(new Date()),
+  );
 
-const START_HOURS = Array.from({ length: 13 }, (_, i) => i + 7); // 7:00 - 19:00
-const DURATIONS = [
-  { value: 30, label: "30 min" },
-  { value: 60, label: "1 hour" },
-  { value: 90, label: "1.5 hours" },
-  { value: 120, label: "2 hours" },
-];
+  const [search, setSearch] = useState("");
+  const [eventType, setEventType] = useState("");
+  const [allDay, setAllDay] = useState<boolean | undefined>(undefined);
 
-/** Transform API Event to CalendarEvent, cycling through available colors */
-function transformApiEvent(event: Event, index: number): CalendarEvent {
-  return {
-    id: event.id,
-    title: event.title,
-    start: new Date(event.startTime),
-    end: new Date(event.endTime),
-    allDay: event.allDay,
-    color: COLORS[index % COLORS.length].value,
-  };
-}
+  const debouncedSearch = useDebounce(search);
 
-function transformApiEvents(apiEvents: Event[]): CalendarEvent[] {
-  return apiEvents.map((event, index) => transformApiEvent(event, index));
-}
+  // Scoped to the visible month grid (including the leading/trailing days shown),
+  // assuming the backend honors from/to — see the note on EventParams if it doesn't.
+  const { from, to } = useMemo(() => {
+    const gridStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1 - 7);
+    const gridEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 7);
+    return { from: gridStart.toISOString(), to: gridEnd.toISOString() };
+  }, [cursor]);
 
-/** The one dialog is a create form when `id` is null and an edit form
- *  otherwise - a single working copy the calendar clicks seed. */
-interface EventDraft {
-  id: string | null;
-  title: string;
-  date: Date;
-  startHour: number;
-  duration: number;
-  allDay: boolean;
-  color: string;
-}
-
-export default function EventPage() {
-  const now = new Date();
-  const monthStart = startOfMonth(now).toISOString();
-  const monthEnd = endOfMonth(now).toISOString();
-
-  const { data: apiEvents = [] } = useEvents({
-    from: monthStart,
-    to: monthEnd,
+  const { data, isLoading } = useEvents({
+    // search: debouncedSearch,
+    // eventType: eventType || undefined,
+    // allDay,
+    from,
+    to,
   });
-  const events = useMemo(() => transformApiEvents(apiEvents), [apiEvents]);
-  const apiRef = useRef<EventCalendarApi | null>(null);
-  const counter = useRef(0);
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<EventDraft | null>(null);
 
-  // Seed a blank create draft for a given day - shared by the empty-slot click
-  // and the header "Add event" button.
-  const seedCreate = (date: Date) => {
-    setDraft({
-      id: null,
-      title: "",
-      date: startOfDay(date),
-      startHour: 9,
-      duration: 60,
-      allDay: false,
-      color: COLORS[0].value,
-    });
-    setOpen(true);
-  };
+  // Assumes a flat array response — see the note in use-events.ts if yours is wrapped.
+  const events: Event[] = useMemo(() => {
+    return Array.isArray(data) ? data : [];
+  }, [data]);
 
-  // Empty slot → create draft. Month cells report allDay with no `end`, so the
-  // form starts as a sensible timed event the user can adjust.
-  const openCreate = (slot: EventCalendarSlotInfo) => seedCreate(slot.date);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  // Event click → seed an edit draft from the event itself (source of truth).
-  const openEdit = (occurrence: EventCalendarOccurrence) => {
-    const event = occurrence.event;
-    setDraft({
-      id: event.id,
-      title: event.title,
-      date: startOfDay(event.start),
-      startHour: event.start.getHours(),
-      duration: Math.max(30, differenceInMinutes(event.end, event.start)),
-      allDay: event.allDay ?? false,
-      color: event.color ?? COLORS[0].value,
-    });
-    setOpen(true);
-  };
-
-  const save = () => {
-    const api = apiRef.current;
-    if (!api || !draft || !draft.title.trim()) return;
-    const start = draft.allDay
-      ? draft.date
-      : setHours(draft.date, draft.startHour);
-    const end = draft.allDay
-      ? addDays(draft.date, 1)
-      : addMinutes(start, draft.duration);
-    const patch = {
-      title: draft.title.trim(),
-      start,
-      end,
-      allDay: draft.allDay,
-      color: draft.color,
-    };
-    if (draft.id === null) {
-      api.addEvent({ id: `evt-${counter.current++}`, ...patch });
-    } else {
-      api.updateEvent(draft.id, patch);
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, Event[]>();
+    for (const event of events) {
+      const start = new Date(event.startTime);
+      if (Number.isNaN(start.getTime())) continue;
+      const key = toDateInputValue(start);
+      map.set(key, [...(map.get(key) ?? []), event]);
     }
-    setOpen(false);
+    return map;
+  }, [events]);
+
+  const filterFields: FilterField[] = [
+    {
+      key: "eventType",
+      label: "Event type",
+      type: "select",
+      value: eventType,
+      onChange: setEventType,
+      options: EVENT_TYPES.map((t) => ({
+        value: t,
+        label: capitalize(t.replaceAll("_", " ")),
+      })),
+    },
+    {
+      key: "allDay",
+      label: "All day",
+      type: "boolean",
+      value: allDay,
+      onChange: setAllDay,
+    },
+  ];
+
+  const openCreate = () => {
+    setEditingEvent(null);
+    setFormOpen(true);
   };
 
-  const remove = () => {
-    const api = apiRef.current;
-    if (!api || !draft?.id) return;
-    api.removeEvent(draft.id);
-    setOpen(false);
+  const openEdit = (event: Event) => {
+    setEditingEvent(event);
+    setFormOpen(true);
   };
-
-  const isEdit = draft?.id != null;
 
   return (
-    <div className="w-full p-4">
-      <Card className="w-full py-0">
-        <CardContent className="p-0">
-          <EventCalendar
-            defaultEvents={events}
-            defaultView="month"
-            apiRef={apiRef}
-            onSlotClick={openCreate}
-            onEventClick={(occurrence, e) => {
-              // open the editor instead of the built-in selection tint
-              e.preventDefault();
-              openEdit(occurrence);
-            }}
-            // the dialog owns creation; drag/resize reschedules and persists
-            interactions={{ drag: true, resize: true, selectSlot: false }}
-            className="h-160 w-full"
-          >
-            <div className="flex flex-wrap items-center gap-2 pe-2">
-              <EventCalendarNav className="min-w-0 flex-1" />
-              <EventCalendarToolbar>
-                <Button size="sm" onClick={() => seedCreate(new Date())}>
-                  <RiAddLine className="size-4" aria-hidden="true" />
-                  Add event
-                </Button>
-              </EventCalendarToolbar>
-            </div>
-            <EventCalendarContent />
-          </EventCalendar>
-        </CardContent>
-      </Card>
+    <div>
+      <p className="font-plexmono text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">
+        Calendar &amp; Deadlines
+      </p>
+      <h1 className="mt-2 font-newsreader text-[28px] font-medium text-foreground">
+        Calendar
+      </h1>
+      <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
+        Hearings, filings, and meetings across the firm — linked back to their
+        case where one applies.
+      </p>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        {draft && (
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle>{isEdit ? "Edit event" : "New event"}</DialogTitle>
-              <DialogDescription>
-                {format(draft.date, "EEEE, MMMM d, yyyy")}
-              </DialogDescription>
-            </DialogHeader>
+      <div className="mt-8 grid gap-4">
+        <section className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Search events"
+            className="w-56"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Filters fields={filterFields} />
+          <div className="ml-auto flex gap-2">
+            <AppButton onClick={openCreate}>
+              <RiAddLine />
+              New event
+            </AppButton>
+          </div>
+        </section>
 
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="ec-crud-title">Title</FieldLabel>
-                <Input
-                  id="ec-crud-title"
-                  placeholder="Add a title"
-                  value={draft.title}
-                  autoFocus
-                  onChange={(e) =>
-                    setDraft({ ...draft, title: e.target.value })
-                  }
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel>Color</FieldLabel>
-                <div className="flex gap-2">
-                  {COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      aria-label={color.label}
-                      aria-pressed={draft.color === color.value}
-                      onClick={() => setDraft({ ...draft, color: color.value })}
-                      style={{ backgroundColor: color.value }}
-                      className={cn(
-                        "ring-offset-background size-6 rounded-full transition",
-                        draft.color === color.value &&
-                          "ring-ring ring-2 ring-offset-2",
-                      )}
-                    />
-                  ))}
-                </div>
-              </Field>
-
-              {!draft.allDay && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Field>
-                    <FieldLabel htmlFor="ec-crud-start">Start</FieldLabel>
-                    <Select
-                      value={String(draft.startHour)}
-                      onValueChange={(value) =>
-                        setDraft({ ...draft, startHour: Number(value) })
-                      }
-                    >
-                      <SelectTrigger id="ec-crud-start" size="sm">
-                        <SelectValue>
-                          {`${String(draft.startHour).padStart(2, "0")}:00`}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {START_HOURS.map((hour) => (
-                          <SelectItem key={hour} value={String(hour)}>
-                            {`${String(hour).padStart(2, "0")}:00`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="ec-crud-duration">Duration</FieldLabel>
-                    <Select
-                      value={String(draft.duration)}
-                      onValueChange={(value) =>
-                        setDraft({ ...draft, duration: Number(value) })
-                      }
-                    >
-                      <SelectTrigger id="ec-crud-duration" size="sm">
-                        <SelectValue>
-                          {DURATIONS.find((d) => d.value === draft.duration)
-                            ?.label ?? `${draft.duration} min`}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DURATIONS.map((option) => (
-                          <SelectItem
-                            key={option.value}
-                            value={String(option.value)}
-                          >
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </div>
-              )}
-
-              <Field orientation="horizontal">
-                <FieldLabel htmlFor="ec-crud-allday" className="font-normal">
-                  All day
-                </FieldLabel>
-                <Switch
-                  id="ec-crud-allday"
-                  checked={draft.allDay}
-                  onCheckedChange={(allDay) => setDraft({ ...draft, allDay })}
-                />
-              </Field>
-            </FieldGroup>
-
-            <DialogFooter className="sm:justify-between">
-              {isEdit ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={remove}
-                >
-                  Delete
-                </Button>
-              ) : (
-                <span />
-              )}
-              <div className="flex gap-2">
-                <DialogClose render={<Button variant="outline" size="sm" />}>
-                  Cancel
-                </DialogClose>
-                <Button size="sm" onClick={save} disabled={!draft.title.trim()}>
-                  {isEdit ? "Save changes" : "Create event"}
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
+        {isLoading ? (
+          <div className="rounded-[3px] border border-border p-10 text-center text-sm text-muted-foreground">
+            Loading the calendar…
+          </div>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+            <MonthCalendar
+              cursor={cursor}
+              onCursorChange={setCursor}
+              selectedDay={selectedDay}
+              events={events}
+              onSelectDay={setSelectedDay}
+              onSelectEvent={openEdit}
+            />
+            <DayAgenda
+              dateValue={selectedDay}
+              events={eventsByDay.get(selectedDay) ?? []}
+              onSelectEvent={openEdit}
+              onAddEvent={openCreate}
+            />
+          </div>
         )}
-      </Dialog>
+
+        <EventFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          event={editingEvent}
+          defaultDate={selectedDay}
+        />
+      </div>
     </div>
   );
 }

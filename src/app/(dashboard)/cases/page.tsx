@@ -14,13 +14,7 @@ import { TableColumnDef } from "@/components/data-table-features";
 import { Badge } from "@/components/ui/badge";
 import { capitalize } from "@/lib/utils";
 import { CASE_STATUSES, PRIORITY_LEVELS } from "@/lib/enums";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Filters, type FilterField } from "@/components/filters";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
@@ -100,6 +94,35 @@ export default function Cases() {
     },
   ];
 
+  // Same three filters as before — now declared as data instead of laid out as
+  // separate controls. Add a field here and it shows up in the dropdown for free.
+  const filterFields: FilterField[] = [
+    {
+      key: "status",
+      label: "Status",
+      type: "select",
+      value: status,
+      onChange: setStatus,
+      options: CASE_STATUSES.map((s) => ({ value: s, label: capitalize(s) })),
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      type: "select",
+      value: priority,
+      onChange: setPriority,
+      options: PRIORITY_LEVELS.map((p) => ({ value: p, label: capitalize(p) })),
+    },
+    {
+      key: "practiceArea",
+      label: "Practice Area",
+      type: "text",
+      value: practiceArea,
+      onChange: setPracticeArea,
+      placeholder: "e.g. Litigation",
+    },
+  ];
+
   const activeFilters: ActiveFilter[] = [
     status && {
       key: "status",
@@ -140,49 +163,12 @@ export default function Cases() {
         <section className="flex flex-wrap items-center gap-2">
           <Input
             placeholder="Search cases"
-            className="w-40"
+            className="w-56"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <Select
-            value={status || undefined}
-            onValueChange={(value) => setStatus(value ?? "")}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {[...CASE_STATUSES].map((s) => (
-                <SelectItem key={s} value={s}>
-                  {capitalize(s)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={priority || undefined}
-            onValueChange={(value) => setPriority(value ?? "")}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              {[...PRIORITY_LEVELS].map((p) => (
-                <SelectItem key={p} value={p}>
-                  {capitalize(p)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Input
-            placeholder="Practice area"
-            className="w-48"
-            value={practiceArea}
-            onChange={(e) => setPracticeArea(e.target.value)}
-          />
+          <Filters fields={filterFields} />
 
           <div className="ml-auto flex gap-2">
             {canCreateCase && (

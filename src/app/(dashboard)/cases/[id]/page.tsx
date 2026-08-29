@@ -6,32 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCaseDetails } from "@/hooks/features/use-cases";
 import { formatDateString, formatDateTimeString } from "@/lib/formatter";
-import { capitalize, cn } from "@/lib/utils";
-import {
-  CaseDetail,
-  Deadline,
-  Note,
-  Party,
-  Team,
-  Transition,
-} from "@/types/case";
+import { capitalize } from "@/lib/utils";
+import { CaseDetail, Note } from "@/types/case";
 import Link from "next/link";
 import {
   RiAddLine,
   RiArrowLeftLine,
   RiBriefcaseLine,
-  RiBuildingLine,
   RiCalendarCheckLine,
   RiCalendarLine,
   RiEditLine,
   RiExchangeLine,
   RiLockLine,
-  RiMailLine,
   RiMapPinLine,
-  RiPhoneLine,
   RiShieldCheckLine,
-  RiShieldLine,
-  RiStarFill,
   RiUserLine,
 } from "@remixicon/react";
 import { useParams } from "next/navigation";
@@ -42,297 +30,19 @@ import {
   RemoveLegalHoldModal,
 } from "@/app/(dashboard)/cases/_components/legal-hold";
 import { AppEmpty } from "@/components/app-empty";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AddDeadlineModal } from "@/app/(dashboard)/cases/_components/add-deadline";
 import { DataTable } from "@/components/data-table";
-import { type ColumnDef } from "@tanstack/react-table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { features } from "@/components/data-table-features";
-import { CaseDocument } from "@/types/document";
 import { useDocuments } from "@/hooks/features/use-documents";
 import { UploadDocumentModal } from "../_components/upload-document";
 import { DocumentDrawer } from "../_components/document-details";
-
-// Column definitions
-const partyColumns: ColumnDef<typeof features, Party>[] = [
-  {
-    accessorKey: "name",
-    header: "Name / Entity",
-    cell: ({ row }) => {
-      const party = row.original;
-      return (
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-            {party.entityType === "INDIVIDUAL" ? (
-              <RiUserLine className="size-4" />
-            ) : (
-              <RiBuildingLine className="size-4" />
-            )}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium">{partyDisplayName(party)}</span>
-            {party.primaryClient && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
-                <RiStarFill className="size-3" />
-                Primary
-              </span>
-            )}
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "partyType",
-    header: "Type",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.partyType.replace(/_/g, " ")}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "contact",
-    header: "Contact",
-    cell: ({ row }) => {
-      const party = row.original;
-      return (
-        <div className="flex flex-col gap-0.5 text-muted-foreground">
-          {party.email && (
-            <span className="flex items-center gap-1.5">
-              <RiMailLine className="size-3.5" />
-              {party.email}
-            </span>
-          )}
-          {party.phone && (
-            <span className="flex items-center gap-1.5">
-              <RiPhoneLine className="size-3.5" />
-              {party.phone}
-            </span>
-          )}
-          {!party.email && !party.phone && "—"}
-        </div>
-      );
-    },
-  },
-];
-
-const teamColumns: ColumnDef<typeof features, Team>[] = [
-  {
-    accessorKey: "userId",
-    header: "Member",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2.5">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-          <RiUserLine className="size-4" />
-        </div>
-        <span className="font-medium text-muted-foreground">
-          {row.original.userId}
-        </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "teamRole",
-    header: "Role",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.teamRole}</span>
-    ),
-  },
-  {
-    accessorKey: "accessLevel",
-    header: "Access",
-    cell: ({ row }) => {
-      const member = row.original;
-      return (
-        <div className="flex flex-col items-start gap-1">
-          <Badge variant="secondary" className="text-xs font-normal">
-            {member.accessLevel}
-          </Badge>
-          {member.ethicalWall && (
-            <span className="flex items-center gap-1 text-xs text-red-700">
-              <RiShieldLine className="size-3.5" />
-              Ethical wall
-            </span>
-          )}
-        </div>
-      );
-    },
-  },
-];
-
-const deadlineColumns: ColumnDef<typeof features, Deadline>[] = [
-  {
-    accessorKey: "title",
-    header: "Title",
-    cell: ({ row }) => {
-      const deadline = row.original;
-      const isOverdue =
-        !deadline.completed &&
-        new Date(deadline.dueDate).getTime() < Date.now();
-      return (
-        <div className="flex items-start gap-3">
-          <Checkbox
-            className="mt-0.5"
-            checked={deadline.completed}
-            disabled
-            aria-label={`${deadline.title} completion status`}
-          />
-          <div className="min-w-0 space-y-0.5">
-            <p className="font-medium">{deadline.title}</p>
-            {deadline.description && (
-              <p className="text-xs text-muted-foreground">
-                {deadline.description}
-              </p>
-            )}
-            <div
-              className={cn(
-                "inline-flex items-center gap-1.5 text-xs",
-                isOverdue
-                  ? "font-medium text-red-600"
-                  : "text-muted-foreground",
-              )}
-            >
-              <RiCalendarLine className="size-3.5" />
-              <span>
-                {deadline.completed
-                  ? `Completed ${formatDateString(deadline.completedAt)}`
-                  : `Due ${formatDateString(deadline.dueDate)}${isOverdue ? " · Overdue" : ""}`}
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "completed",
-    header: "Status",
-    cell: ({ row }) => {
-      const deadline = row.original;
-      const isOverdue =
-        !deadline.completed &&
-        new Date(deadline.dueDate).getTime() < Date.now();
-      if (deadline.completed) {
-        return <Badge className="bg-green-100 text-green-700">Completed</Badge>;
-      }
-      if (isOverdue) {
-        return <Badge className="bg-red-100 text-red-700">Overdue</Badge>;
-      }
-      return <Badge className="bg-blue-100 text-blue-700">Pending</Badge>;
-    },
-  },
-];
-
-const transitionColumns: ColumnDef<typeof features, Transition>[] = [
-  {
-    accessorKey: "fromStage",
-    header: "From",
-    cell: ({ row }) => (
-      <div className="space-y-0.5">
-        <p className="font-medium">{row.original.fromStage || "—"}</p>
-        <p className="text-xs text-muted-foreground">
-          {row.original.fromStatus || "—"}
-        </p>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "toStage",
-    header: "To",
-    cell: ({ row }) => (
-      <div className="space-y-0.5">
-        <p className="font-medium">{row.original.toStage || "—"}</p>
-        <p className="text-xs text-muted-foreground">
-          {row.original.toStatus || "—"}
-        </p>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "reason",
-    header: "Reason",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.reason || "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "timestamp",
-    header: "Date",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {formatDateTimeString(row.original.timestamp)}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "override",
-    header: "Override",
-    cell: ({ row }) =>
-      row.original.override ? (
-        <Badge className="bg-amber-100 text-amber-700">Yes</Badge>
-      ) : null,
-  },
-];
-
-const documentColumns: ColumnDef<typeof features, CaseDocument>[] = [
-  {
-    accessorKey: "fileName",
-    header: "Name",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.fileName || "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "fileType",
-    header: "Type",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.fileType || "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {row.original.description || "—"}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge
-        className={cn(
-          "text-xs",
-          row.original.status === "ACTIVE"
-            ? "bg-green-100 text-green-700"
-            : row.original.status === "ARCHIVED"
-              ? "bg-gray-100 text-gray-700"
-              : "bg-muted text-muted-foreground",
-        )}
-      >
-        {row.original.status}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "uploadedAt",
-    header: "Uploaded",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {formatDateTimeString(row.original.createdAt) || "—"}
-      </span>
-    ),
-  },
-];
+import {
+  deadlineColumns,
+  partyColumns,
+  teamColumns,
+  transitionColumns,
+  documentColumns,
+} from "../case-utils";
 
 export default function CaseDetails() {
   const params = useParams<{ id: string }>();
@@ -568,6 +278,13 @@ export default function CaseDetails() {
 
           {/* Documents */}
           <TabsContent value="documents" className="mt-4">
+            <div className="mb-3 flex justify-end">
+              <UploadDocumentModal
+                caseId={caseDetail?.id}
+                open={uploadDocumentOpen}
+                setOpen={setUploadDocumentOpen}
+              />
+            </div>
             <DataTable
               columns={documentColumns}
               data={documents}
@@ -619,11 +336,6 @@ export default function CaseDetails() {
         caseId={caseDetail?.id}
         open={addDeadlineOpen}
         onOpenChange={setAddDeadlineOpen}
-      />
-      <UploadDocumentModal
-        caseId={caseDetail?.id}
-        open={uploadDocumentOpen}
-        setOpen={setUploadDocumentOpen}
       />
       <DocumentDrawer
         caseId={caseDetail?.id}
@@ -685,13 +397,6 @@ function PriorityBadge({ priority }: { priority: string }) {
       {priority}
     </Badge>
   );
-}
-
-function partyDisplayName(party: Party) {
-  if (party.entityType === "INDIVIDUAL") {
-    return [party.firstName, party.lastName].filter(Boolean).join(" ") || "—";
-  }
-  return party.entityName || "—";
 }
 
 function OverviewRow({

@@ -38,7 +38,7 @@ function AcceptInvitationForm() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const token = searchParams.get("token") ?? "";
-  const email = searchParams.get("email") ?? "olabisiolaoye09+3@gmail.com";
+  const email = searchParams.get("email") ?? "";
 
   const form = useForm<AcceptValues>({
     defaultValues: { firstName: "", lastName: "", password: "" },
@@ -79,7 +79,7 @@ function AcceptInvitationForm() {
     }
   };
 
-  if (!token) {
+  if (!token || !email) {
     return (
       <AuthForm
         title="Invite link incomplete"
