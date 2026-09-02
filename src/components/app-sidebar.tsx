@@ -52,11 +52,15 @@ interface NavItem {
 const practiceNav = [
   { title: "Dashboard", href: "/dashboard", icon: RiHomeLine },
   { title: "Case Management", href: "/cases", icon: RiFolderLine },
-  // { title: "Documents", href: "/documents", icon: RiFileTextLine },
   { title: "Events", href: "/events", icon: RiCalendarLine },
+  // {
+  //   title: "Conflict Check",
+  //   href: "/conflicts",
+  //   icon: RiFileSearchLine,
+  // },
   {
-    title: "Conflict Check",
-    href: "/conflicts",
+    title: "Hearings",
+    href: "/hearings",
     icon: RiFileSearchLine,
   },
 ];
@@ -137,11 +141,11 @@ export function AppSidebar() {
           </span>
           <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
             <span className="truncate font-newsreader text-sm font-medium text-sidebar-foreground">
-              {user?.orgName || "LegalConnect"}
+              LegalConnect
             </span>
-            {/* <span className="font-plexmono text-[10px] text-sidebar-foreground/50">
-              MATTER OS
-            </span> */}
+            <span className="font-plexmono text-[10px] text-sidebar-foreground/50">
+              {user?.orgName || "No organization"}
+            </span>
           </div>
         </div>
       </SidebarHeader>

@@ -51,6 +51,8 @@ export function DataTable<TData extends RowData>({
     data,
     columns,
     getRowCanExpand: () => true,
+    manualPagination: true,
+    rowCount: pagination?.totalItems,
   });
 
   const totalPages = pagination

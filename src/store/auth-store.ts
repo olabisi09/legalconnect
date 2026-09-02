@@ -18,10 +18,12 @@ interface User {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
+  isHydrated: boolean;
 
   setAuthState: (state: { user: AuthState["user"] }) => void;
   setUser: (user: AuthState["user"]) => void;
   clearAuthState: () => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -29,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
+      isHydrated: false,
 
       setAuthState: ({ user }) => set(() => ({ user, isAuthenticated: true })),
       setUser: (user) => set(() => ({ user })),
@@ -45,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
           });
         }
       },
+      setHydrated: (hydrated) => set(() => ({ isHydrated: hydrated })),
     }),
     {
       name: "auth-store",
@@ -52,6 +56,12 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         user: state.user,
       }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("Error rehydrating auth store:", error);
+        }
+        state?.setHydrated(true);
+      },
     },
   ),
 );

@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { Notifications } from "@/app/(dashboard)/dashboard/_components/notifications";
+import { ThemeToggle } from "./theme-toggle";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -26,7 +27,10 @@ export function SiteHeader() {
             {routeMap[pathname] || "Dashboard"}
           </h1>
         </div>
-        <Notifications />
+        <div className="flex items-center gap-4">
+          <Notifications />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

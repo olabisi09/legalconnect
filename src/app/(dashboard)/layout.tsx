@@ -1,4 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { RouteGuard } from "@/components/permission-guard";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
@@ -22,7 +23,7 @@ export default async function DashboardLayout({
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4  md:gap-6 p-4 lg:p-6">
-              {children}
+              <RouteGuard>{children}</RouteGuard>
             </div>
           </div>
         </div>

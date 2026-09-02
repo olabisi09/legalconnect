@@ -212,3 +212,22 @@ export function hasPermission(
   const requiredList = Array.isArray(required) ? required : [required];
   return requiredList.every((p) => userPermissions.includes(p));
 }
+
+export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = {
+  "/cases": P.CASE_READ,
+  "/cases/:caseId": P.CASE_READ,
+  "/cases/:caseId/edit": P.CASE_WRITE,
+  "/audit-logs": P.REPORTING_READ,
+  // "/organizations": P.ORGANIZATION_READ,
+  // "/organizations/:orgId": P.ORGANIZATION_READ,
+};
+
+export function matchRoutePermission(
+  pathname: string,
+): Permission | Permission[] | undefined {
+  const matches = Object.keys(ROUTE_PERMISSIONS)
+    .filter((route) => pathname === route || pathname.startsWith(`${route}/`))
+    .sort((a, b) => b.length - a.length);
+
+  return matches.length > 0 ? ROUTE_PERMISSIONS[matches[0]] : undefined;
+}

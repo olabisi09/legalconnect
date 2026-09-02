@@ -52,7 +52,7 @@ export default function SignupPage() {
     await signup.mutateAsync(values, {
       onSuccess: async (data) => {
         toast.success("Account created successfully.");
-        
+
         const sessionResponse = await fetch("/api/auth/session", {
           method: "POST",
           credentials: "include",
@@ -70,6 +70,7 @@ export default function SignupPage() {
         }
 
         setAuthState({ user: data.auth.user });
+        router.push("/dashboard");
       },
     });
   };

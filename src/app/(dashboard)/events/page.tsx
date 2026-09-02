@@ -32,7 +32,11 @@ export default function CalendarPage() {
   const { from, to } = useMemo(() => {
     const gridStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1 - 7);
     const gridEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 7);
-    return { from: gridStart.toISOString(), to: gridEnd.toISOString() };
+
+    return {
+      from: gridStart.toISOString().split("T")[0],
+      to: gridEnd.toISOString().split("T")[0],
+    };
   }, [cursor]);
 
   const { data, isLoading } = useEvents({

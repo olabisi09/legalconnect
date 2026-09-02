@@ -104,3 +104,23 @@ export const useDeleteDocument = () => {
     },
   });
 };
+
+export const useAddEthicalWall = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: documentAPI.addEthicalWall,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DOCUMENTS_QUERY_KEY] });
+    },
+  });
+};
+
+export const useRemoveEthicalWall = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: documentAPI.removeEthicalWall,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [DOCUMENTS_QUERY_KEY] });
+    },
+  });
+};

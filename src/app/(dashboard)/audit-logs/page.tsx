@@ -97,14 +97,12 @@ export default function AuditLogsPage() {
       </p>
 
       <div className="mt-8 grid gap-4">
-        <section className="flex flex-wrap items-center gap-2">
+        <section className="flex justify-end items-center gap-2">
           <DateRangePicker value={dateRange} onChange={setDateRange} />
-          <div className="ml-auto flex gap-2">
-            <AppButton className="ml-auto" onClick={handleExportCsv}>
-              <RiFileDownloadLine />
-              Export
-            </AppButton>
-          </div>
+          <AppButton onClick={handleExportCsv}>
+            <RiFileDownloadLine />
+            Export
+          </AppButton>
         </section>
         <DataTable
           data={logs}
@@ -124,7 +122,7 @@ export default function AuditLogsPage() {
             if (typeof detail === "string") {
               return (
                 <div className="py-2">
-                  <p className="text-sm text-foreground">{detail}</p>
+                  <p className="text-xs text-foreground">{detail}</p>
                 </div>
               );
             }

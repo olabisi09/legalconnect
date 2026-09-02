@@ -55,6 +55,13 @@ import {
   downloadDocumentFile,
   getFileNameFromContentDispositionHeader,
 } from "./download";
+import { useAuthStore } from "@/store/auth-store";
+import { Hearing, HearingParams, HearingPayload } from "@/types/hearing";
+import { DashboardResponse } from "@/types/dashboard";
+
+const { user } = useAuthStore.getState();
+const role = user?.role;
+const isClient = role === "CLIENT";
 
 export const authAPI = {
   login: async (payload: {
@@ -297,6 +304,29 @@ export const documentAPI = {
     await apiClient
       .delete<ApiResponse<any>>(`/documents/${docId}`)
       .then(unwrap),
+  addEthicalWall: async ({
+    id,
+    ...payload
+  }: {
+    id: string;
+    userId: string;
+    reason: string;
+  }) =>
+    await apiClient
+      .post<ApiResponse<any>>(`/documents/${id}/ethical-wall`, payload)
+      .then(unwrap),
+  removeEthicalWall: async ({
+    id,
+    restrictionId,
+  }: {
+    id: string;
+    restrictionId: string;
+  }) =>
+    await apiClient
+      .delete<
+        ApiResponse<any>
+      >(`/documents/${id}/ethical-wall/${restrictionId}`)
+      .then(unwrap),
 };
 
 export const orgAPI = {
@@ -380,24 +410,93 @@ export const eventsAPI = {
 };
 
 export const notificationAPI = {
-  getNotifications: async (params?: { page?: number; size?: number }) =>
+  getNotifications: async (params?: {
+    page?: number;
+    size?: number;
+    unreadOnly?: boolean;
+  }) =>
     await apiClient
-      .get<ApiResponse<PagedResponse<Notification>>>("/notifications", {
-        params,
-      })
+      .get<ApiResponse<PagedResponse<Notification>>>(
+        isClient ? "/client/notifications" : "/notifications",
+        {
+          params,
+        },
+      )
       .then(unwrap),
   getUnreadCount: async () =>
     await apiClient
-      .get<ApiResponse<number>>("/notifications/unread-count")
+      .get<
+        ApiResponse<number>
+      >(isClient ? "/client/notifications/unread-count" : "/notifications/unread-count")
       .then(unwrap),
   markAsRead: async (notificationId: string) =>
     await apiClient
       .post<
         ApiResponse<{ message: string }>
-      >(`/notifications/${notificationId}/read`)
+      >(`${isClient ? "/client/notifications" : "/notifications"}/${notificationId}/read`)
       .then(unwrap),
   markAllAsRead: async () =>
     await apiClient
-      .post<ApiResponse<{ message: string }>>("/notifications/read-all")
+      .post<
+        ApiResponse<{ message: string }>
+      >(isClient ? "/client/notifications/read-all" : "/notifications/read-all")
+      .then(unwrap),
+};
+
+export const hearingAPI = {
+  getHearings: async (params?: HearingParams) =>
+    await apiClient
+      .get<ApiResponse<PagedResponse<Hearing>>>("/hearings", { params })
+      .then(unwrap),
+  getHearingDetails: async (hearingId: string) =>
+    await apiClient
+      .get<ApiResponse<Hearing>>(`/hearings/${hearingId}`)
+      .then(unwrap),
+  createHearing: async (payload: HearingPayload) =>
+    await apiClient
+      .post<ApiResponse<Hearing>>("/hearings", payload)
+      .then(unwrap),
+  reschedule: async ({
+    id,
+    ...payload
+  }: {
+    id: string;
+    newDate: string;
+    reason: string;
+  }) =>
+    await apiClient
+      .post<ApiResponse<Hearing>>(`/hearings/${id}/reschedule`, payload)
+      .then(unwrap),
+  recordOutcome: async ({
+    id,
+    ...payload
+  }: {
+    id: string;
+    outcomeType: string;
+    description: string;
+  }) =>
+    await apiClient
+      .post<ApiResponse<Hearing>>(`/hearings/${id}/outcome`, payload)
+      .then(unwrap),
+  cancel: async ({ id, ...payload }: { id: string; reason: string }) =>
+    await apiClient
+      .post<ApiResponse<Hearing>>(`/hearings/${id}/cancel`, payload)
+      .then(unwrap),
+  markAsHeld: async (id: string) =>
+    await apiClient
+      .post<ApiResponse<Hearing>>(`/hearings/${id}/held`)
+      .then(unwrap),
+  delete: async (id: string) =>
+    await apiClient
+      .delete<ApiResponse<{ message: string }>>(`/hearings/${id}`)
+      .then(unwrap),
+};
+
+export const dashboardAPI = {
+  getDashboard: async () =>
+    await apiClient
+      .get<
+        ApiResponse<DashboardResponse>
+      >(isClient ? "/client/dashboard" : "/admin/dashboard")
       .then(unwrap),
 };
