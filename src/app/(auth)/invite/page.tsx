@@ -15,8 +15,6 @@ import { useAuthStore } from "@/store/auth-store";
 import { useAcceptInvitation } from "@/hooks/features/use-team";
 
 const acceptSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -41,7 +39,7 @@ function AcceptInvitationForm() {
   const email = searchParams.get("email") ?? "";
 
   const form = useForm<AcceptValues>({
-    defaultValues: { firstName: "", lastName: "", password: "" },
+    defaultValues: { password: "" },
     resolver: zodResolver(acceptSchema),
   });
   const { handleSubmit } = form;
@@ -129,24 +127,6 @@ function AcceptInvitationForm() {
                 Email
               </p>
               <p className="mt-0.5 text-sm text-lc-ink">{email}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <FormInput
-                id="firstName"
-                name="firstName"
-                className="w-full"
-                placeholder="First name"
-                label="First name"
-                autoFocus
-              />
-              <FormInput
-                id="lastName"
-                name="lastName"
-                className="w-full"
-                placeholder="Last name"
-                label="Last name"
-              />
             </div>
 
             <FormInput

@@ -59,9 +59,10 @@ import { useAuthStore } from "@/store/auth-store";
 import { Hearing, HearingParams, HearingPayload } from "@/types/hearing";
 import { DashboardResponse } from "@/types/dashboard";
 
-const { user } = useAuthStore.getState();
-const role = user?.role;
-const isClient = role === "CLIENT";
+// Reads the current user's role at call time (not at module load), since
+// useAuthStore.getState() is only a snapshot of the store at the moment
+// it's called - it doesn't update reactively like the `useAuthStore()` hook.
+const isClientRole = () => useAuthStore.getState().user?.role === "CLIENT";
 
 export const authAPI = {
   login: async (payload: {
@@ -417,7 +418,7 @@ export const notificationAPI = {
   }) =>
     await apiClient
       .get<ApiResponse<PagedResponse<Notification>>>(
-        isClient ? "/client/notifications" : "/notifications",
+        isClientRole() ? "/client/notifications" : "/notifications",
         {
           params,
         },
@@ -427,19 +428,19 @@ export const notificationAPI = {
     await apiClient
       .get<
         ApiResponse<number>
-      >(isClient ? "/client/notifications/unread-count" : "/notifications/unread-count")
+      >(isClientRole() ? "/client/notifications/unread-count" : "/notifications/unread-count")
       .then(unwrap),
   markAsRead: async (notificationId: string) =>
     await apiClient
       .post<
         ApiResponse<{ message: string }>
-      >(`${isClient ? "/client/notifications" : "/notifications"}/${notificationId}/read`)
+      >(`${isClientRole() ? "/client/notifications" : "/notifications"}/${notificationId}/read`)
       .then(unwrap),
   markAllAsRead: async () =>
     await apiClient
       .post<
         ApiResponse<{ message: string }>
-      >(isClient ? "/client/notifications/read-all" : "/notifications/read-all")
+      >(isClientRole() ? "/client/notifications/read-all" : "/notifications/read-all")
       .then(unwrap),
 };
 
@@ -497,6 +498,6 @@ export const dashboardAPI = {
     await apiClient
       .get<
         ApiResponse<DashboardResponse>
-      >(isClient ? "/client/dashboard" : "/admin/dashboard")
+      >(isClientRole() ? "/client/dashboard" : "/admin/dashboard")
       .then(unwrap),
 };

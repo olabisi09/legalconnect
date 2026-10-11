@@ -29,8 +29,6 @@ export interface AcceptInvitationPayload {
   token: string;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
 }
 
 export type UserStatus =

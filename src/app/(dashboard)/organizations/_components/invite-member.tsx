@@ -44,7 +44,6 @@ type InviteValues = z.infer<typeof inviteSchema>;
 
 export function InviteMemberDialog() {
   const [open, setOpen] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const inviteUser = useInviteUser();
 
   const form = useForm<InviteValues>({
@@ -54,19 +53,9 @@ export function InviteMemberDialog() {
   const { handleSubmit, reset } = form;
 
   const onSubmit = async (values: InviteValues) => {
-    setServerError(null);
-    try {
-      await inviteUser.mutateAsync(values);
-      reset();
-      setOpen(false);
-    } catch (err) {
-      // Surfaces the API's message (e.g. a rejected role string) instead of failing silently.
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Something went wrong sending the invite.";
-      setServerError(message);
-    }
+    await inviteUser.mutateAsync(values);
+    reset();
+    setOpen(false);
   };
 
   return (
@@ -76,7 +65,6 @@ export function InviteMemberDialog() {
         setOpen(next);
         if (!next) {
           reset();
-          setServerError(null);
         }
       }}
     >
@@ -135,10 +123,6 @@ export function InviteMemberDialog() {
             </div>
 
             <FormSelect name="role" label="Role" options={ROLES} />
-
-            {serverError ? (
-              <p className="text-sm text-lc-stamp">{serverError}</p>
-            ) : null}
 
             <DialogFooter className="pt-2">
               <Button
